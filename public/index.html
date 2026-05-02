@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bebekoala Inventory - Gestión de Ropa de Bebé</title>
+    <style>
+        :root {
+            --bg: #fdf2f8;
+            --primary: #ec4899;
+            --primary-light: #fce7f3;
+            --blue: #60a5fa;
+            --blue-light: #dbeafe;
+            --green: #34d399;
+            --green-light: #d1fae5;
+            --red: #f87171;
+            --red-light: #fee2e2;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.5rem;
+            --radius: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.25rem;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--gray-800);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            background: var(--bg);
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #db2777 100%);
+            padding: 1.25rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-logo svg {
+            width: 36px;
+            height: 36px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .header-title {
+            color: white;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 1.25rem;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .section {
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid var(--gray-100);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .card-icon.pink {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .card-icon.blue {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+        .card-icon.green {
+            background: var(--green-light);
+            color: var(--green);
+        }
+        .card-icon.red {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid var(--gray-100);
+            animation: slideInUp 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        .stat-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .stat-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+        .stat-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            font-size: 1.3rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        /* Bar Chart */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            height: 120px;
+            padding: 0.5rem 0;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #f472b6 0%, #ec4899 100%);
+            border-radius: 6px 6px 0 0;
+            transition: var(--transition);
+            position: relative;
+            min-height: 20px;
+            cursor: pointer;
+        }
+
+        .bar:hover {
+            filter: brightness(1.1);
+            transform: scaleY(1.05);
+            transform-origin: bottom;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: var(--gray-500);
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        thead {
+            background: var(--gray-50);
+        }
+
+        th {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.875rem;
+        }
+
+        tbody tr {
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        tbody tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        tbody tr:nth-child(even):hover {
+            background: #f3f4f6;
+        }
+
+        .product-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-pink {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .badge-blue {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+        .badge-green {
+            background: var(--green-light);
+            color: #059669;
+        }
+        .badge-red {
+            background: var(--red-light);
+            color: #dc2626;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: 0.01em;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+        }
+        .btn-primary:hover {
+            background: #db2777;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: white;
+            box-shadow: 0 2px 8px rgba(52, 211, 153, 0.3);
+        }
+        .btn-green:hover {
+            background: #10b981;
+            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: white;
+            box-shadow: 0 2px 8px rgba(248, 113, 113, 0.3);
+        }
+        .btn-red:hover {
+            background: #ef4444;
+            box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.375rem;
+            letter-spacing: 0.02em;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            background: var(--white);
+            color: var(--gray-800);
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon .form-input {
+            padding-left: 2.75rem;
+        }
+
+        .input-icon svg {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            pointer-events: none;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: var(--radius);
+            position: relative;
+            color: var(--gray-400);
+            text-decoration: none;
+            border: none;
+            background: none;
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            transition: var(--transition);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            width: 32px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .nav-item:active {
+            transform: scale(0.9);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 10;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gray-100);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--gray-600);
+        }
+
+        .modal-close:hover {
+            background: var(--gray-200);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            position: sticky;
+            bottom: 0;
+            background: var(--white);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--gray-800);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-weight: 500;
+            font-size: 0.875rem;
+            z-index: 300;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 90%;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: #059669;
+        }
+        .toast.error {
+            background: #dc2626;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 2rem auto;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: 2px solid var(--gray-200);
+            background: var(--white);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: var(--transition);
+            color: var(--gray-600);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active:hover {
+            color: white;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .app-container {
+                padding-bottom: 100px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .header {
+                padding: 1.5rem 2rem;
+            }
+
+            .main-content {
+                padding: 1.5rem 2rem;
+            }
+
+            .modal {
+                border-radius: var(--radius-xl);
+                margin: 2rem;
+                max-height: 80vh;
+            }
+
+            .bottom-nav {
+                padding: 0.75rem 0;
+            }
+
+            .nav-item {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .app-container {
+                max-width: 800px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-logo">
+                <svg viewBox="0 0 36 36" fill="none">
+                    <circle cx="18" cy="18" r="17" fill="white" opacity="0.2"/>
+                    <circle cx="18" cy="14" r="8" fill="white"/>
+                    <circle cx="14" cy="12" r="1.5" fill="#ec4899"/>
+                    <circle cx="22" cy="12" r="1.5" fill="#ec4899"/>
+                    <path d="M13 17 Q18 22 23 17" stroke="#ec4899" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="18" cy="28" rx="10" ry="5" fill="white" opacity="0.3"/>
+                </svg>
+                <div>
+                    <div class="header-title">Bebekoala</div>
+                    <div class="header-subtitle">Inventory</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" onclick="refreshData()" title="Actualizar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Dashboard Section -->
+            <section class="section active" id="dashboardSection">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="spinner"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <span class="card-icon pink">📊</span>
+                            Valor del Inventario
+                        </h3>
+                    </div>
+                    <div class="bar-chart" id="barChart">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section class="section" id="productsSection">
+                <div class="card-header" style="margin-bottom: 1rem;">
+                    <h3 class="card-title">
+                        <span class="card-icon pink">👶</span>
+                        Productos
+                    </h3>
+                    <button class="btn btn-primary btn-sm" onclick="openProductModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Nuevo
+                    </button>
+                </div>
+                <div class="table-container" id="productsTable">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+
+            <!-- Movements Section -->
+            <section class="section" id="movementsSection">
+                <div class="card-header" style="margin-bottom: 1rem;">
+                    <h3 class="card-title">
+                        <span class="card-icon blue">📦</span>
+                        Movimientos
+                    </h3>
+                    <button class="btn btn-primary btn-sm" onclick="openMovementModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Registrar
+                    </button>
+                </div>
+                <div class="filter-bar" id="movementFilters">
+                    <button class="filter-btn active" onclick="filterMovements('all')">Todos</button>
+                    <button class="filter-btn" onclick="filterMovements('entrada')">Entradas</button>
+                    <button class="filter-btn" onclick="filterMovements('salida')">Salidas</button>
+                </div>
+                <div class="table-container" id="movementsTable">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section class="section" id="historySection">
+                <div class="card-header" style="margin-bottom: 1rem;">
+                    <h3 class="card-title">
+                        <span class="card-icon green">📋</span>
+                        Historial
+                    </h3>
+                </div>
+                <div class="filter-bar">
+                    <button class="filter-btn active" onclick="filterHistory('all')">Todos</button>
+                    <button class="filter-btn" onclick="filterHistory('entrada')">Entradas</button>
+                    <button class="filter-btn" onclick="filterHistory('salida')">Salidas</button>
+                </div>
+                <div class="table-container" id="historyTable">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="navigateTo('dashboard')" data-section="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('products')" data-section="products">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+                <span>Productos</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('movements')" data-section="movements">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <span>Movimientos</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('history')" data-section="history">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Historial</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast"></div>
+
+        <!-- Product Modal -->
+        <div class="modal-overlay" id="productModal" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="productModalTitle">Nuevo Producto</h3>
+                    <button class="modal-close" onclick="closeProductModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+                        <div class="form-group">
+                            <label class="form-label">Nombre del Producto</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                                </svg>
+                                <input type="text" class="form-input" id="productName" placeholder="Ej: Mameluco Algodón" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Categoría</label>
+                            <select class="form-select" id="productCategory" required>
+                                <option value="">Seleccionar categoría</option>
+                                <option value="Mamelucos">Mamelucos</option>
+                                <option value="Conjuntos">Conjuntos</option>
+                                <option value="Vestidos">Vestidos</option>
+                                <option value="Pijamas">Pijamas</option>
+                                <option value="Accesorios">Accesorios</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Precio (MX$)</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                                </svg>
+                                <input type="number" class="form-input" id="productPrice" placeholder="0.00" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock Inicial</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                                </svg>
+                                <input type="number" class="form-input" id="productStock" placeholder="0" min="0" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" onclick="closeProductModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveProduct()">Guardar Producto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movement Modal -->
+        <div class="modal-overlay" id="movementModal" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Registrar Movimiento</h3>
+                    <button class="modal-close" onclick="closeMovementModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="movementForm">
+                        <div class="form-group">
+                            <label class="form-label">Producto</label>
+                            <select class="form-select" id="movementProduct" required>
+                                <option value="">Seleccionar producto</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Movimiento</label>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button type="button" class="btn btn-green" style="flex: 1;" onclick="setMovementType('entrada')" id="btnEntrada">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="12" y1="19" x2="12" y2="5"/>
+                                        <polyline points="5 12 12 5 19 12"/>
+                                    </svg>
+                                    Entrada
+                                </button>
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="setMovementType('salida')" id="btnSalida">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <polyline points="19 12 12 19 5 12"/>
+                                    </svg>
+                                    Salida
+                                </button>
+                            </div>
+                            <input type="hidden" id="movementType" value="entrada">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cantidad</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20V10M18 20V4M6 20v-4"/>
+                                </svg>
+                                <input type="number" class="form-input" id="movementQuantity" placeholder="0" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fecha</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <input type="date" class="form-input" id="movementDate" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Notas</label>
+                            <textarea class="form-textarea" id="movementNotes" placeholder="Notas adicionales..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cliente (opcional)</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                <input type="text" class="form-input" id="movementClient" placeholder="Nombre del cliente">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" onclick="closeMovementModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveMovement()" id="saveMovementBtn">Registrar Entrada</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// Variables globales
+let editingProductId = null;
+let currentMovementType = 'entrada';
+let currentSection = 'dashboard';
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    setupNavigation();
+    loadDashboard();
+    setDefaultDate();
+});
+
+// Navegación
+function setupNavigation() {
+    document.querySelectorAll('[data-section]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.dataset.section;
+            navigateTo(section);
+        });
+    });
+}
+
+function navigateTo(section) {
+    currentSection = section;
+    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+    document.getElementById(`${section}Section`).classList.remove('hidden');
+    
+    document.querySelectorAll('[data-section]').forEach(nav => {
+        nav.classList.remove('active');
+        if (nav.dataset.section === section) nav.classList.add('active');
+    });
+
+    switch(section) {
+        case 'dashboard': loadDashboard(); break;
+        case 'products': loadProducts(); break;
+        case 'movements': loadMovements(); break;
+        case 'history': loadHistory(); break;
+    }
+}
+
+// Dashboard
+async function loadDashboard() {
+    try {
+        const response = await fetch('/api/dashboard');
+        const data = await response.json();
+        
+        document.getElementById('dashboardCards').innerHTML = `
+            <div class="card">
+                <h3>Total Productos</h3>
+                <p class="big-number">${data.totalProductos || 0}</p>
+            </div>
+            <div class="card">
+                <h3>Valor Inventario</h3>
+                <p class="big-number">$${(data.valorInventario || 0).toLocaleString()}</p>
+            </div>
+            <div class="card">
+                <h3>Movimientos Hoy</h3>
+                <p class="big-number">${data.movimientosHoy || 0}</p>
+            </div>
+            <div class="card">
+                <h3>Bajo Stock</h3>
+                <p class="big-number">${data.bajoStock || 0}</p>
+            </div>
+        `;
+
+        const recentMovements = document.getElementById('recentMovements');
+        if (data.ultimosMovimientos && data.ultimosMovimientos.length > 0) {
+            recentMovements.innerHTML = data.ultimosMovimientos.map(m => `
+                <div class="movement-item">
+                    <span>${m.producto_nombre || m.producto_id}</span>
+                    <span class="${m.tipo}">${m.tipo}</span>
+                    <span>${m.cantidad}</span>
+                    <span>${new Date(m.fecha).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        } else {
+            recentMovements.innerHTML = '<p>No hay movimientos recientes</p>';
+        }
+
+        const stockAlerts = document.getElementById('stockAlerts');
+        if (data.bajoStockProductos && data.bajoStockProductos.length > 0) {
+            stockAlerts.innerHTML = data.bajoStockProductos.map(p => `
+                <div class="alert-item">
+                    <span>${p.nombre}</span>
+                    <span class="stock-low">Stock: ${p.stock}</span>
+                </div>
+            `).join('');
+        } else {
+            stockAlerts.innerHTML = '<p>No hay productos con bajo stock</p>';
+        }
+
+        hideSpinner('dashboardSection');
+    } catch (error) {
+        showToast('Error al cargar dashboard', 'error');
+        hideSpinner('dashboardSection');
+    }
+}
+
+// Productos
+async function loadProducts() {
+    try {
+        const response = await fetch('/api/productos');
+        const products = await response.json();
+        displayProducts(products);
+        hideSpinner('productsSection');
+    } catch (error) {
+        showToast('Error al cargar productos', 'error');
+        hideSpinner('productsSection');
+    }
+}
+
+function displayProducts(products) {
+    const container = document.getElementById('productsList');
+    if (!products || products.length === 0) {
+        container.innerHTML = '<p>No hay productos registrados</p>';
+        return;
+    }
+    
+    container.innerHTML = products.map(p => `
+        <div class="product-card">
+            <h3>${p.nombre}</h3>
+            <p>Precio: $${p.precio}</p>
+            <p>Costo: $${p.costo}</p>
+            <p>Stock: ${p.stock}</p>
+            <p>Categoría: ${p.categoria || 'N/A'}</p>
+            <p>Talle: ${p.talle || 'N/A'}</p>
+            <p>Color: ${p.color || 'N/A'}</p>
+            <div class="product-actions">
+                <button onclick="openProductModal(${p.id})">Editar</button>
+                <button onclick="deleteProduct(${p.id})">Eliminar</button>
+                <button onclick="openMovementModal(${p.id}, 'entrada')">+ Entrada</button>
+                <button onclick="openMovementModal(${p.id}, 'salida')">- Salida</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+document.getElementById('productSearch')?.addEventListener('input', async (e) => {
+    const query = e.target.value.toLowerCase();
+    try {
+        const response = await fetch('/api/productos');
+        const products = await response.json();
+        const filtered = products.filter(p => 
+            p.nombre.toLowerCase().includes(query) ||
+            (p.categoria && p.categoria.toLowerCase().includes(query)) ||
+            (p.color && p.color.toLowerCase().includes(query))
+        );
+        displayProducts(filtered);
+    } catch (error) {
+        showToast('Error al buscar productos', 'error');
+    }
+});
+
+function openProductModal(productId = null) {
+    editingProductId = productId;
+    const modal = document.getElementById('productModal');
+    const form = document.getElementById('productForm');
+    
+    form.reset();
+    document.getElementById('productId').value = '';
+    
+    if (productId) {
+        fetch(`/api/productos/${productId}`)
+            .then(res => res.json())
+            .then(product => {
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.nombre || '';
+                document.getElementById('productPrice').value = product.precio || '';
+                document.getElementById('productCost').value = product.costo || '';
+                document.getElementById('productStock').value = product.stock || '';
+                document.getElementById('productCategory').value = product.categoria || '';
+                document.getElementById('productSize').value = product.talle || '';
+                document.getElementById('productColor').value = product.color || '';
+            })
+            .catch(() => showToast('Error al cargar producto', 'error'));
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').classList.add('hidden');
+    editingProductId = null;
+}
+
+async function saveProduct() {
+    const productData = {
+        nombre: document.getElementById('productName').value,
+        precio: parseFloat(document.getElementById('productPrice').value),
+        costo: parseFloat(document.getElementById('productCost').value),
+        stock: parseInt(document.getElementById('productStock').value),
+        categoria: document.getElementById('productCategory').value,
+        talle: document.getElementById('productSize').value,
+        color: document.getElementById('productColor').value
+    };
+
+    if (!productData.nombre || isNaN(productData.precio) || isNaN(productData.stock)) {
+        showToast('Completa todos los campos requeridos', 'error');
+        return;
+    }
+
+    try {
+        const url = editingProductId 
+            ? `/api/productos/${editingProductId}` 
+            : '/api/productos';
+        const method = editingProductId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productData)
+        });
+
+        if (response.ok) {
+            showToast(editingProductId ? 'Producto actualizado' : 'Producto creado', 'success');
+            closeProductModal();
+            loadProducts();
+        } else {
+            showToast('Error al guardar producto', 'error');
+        }
+    } catch (error) {
+        showToast('Error de conexión', 'error');
+    }
+}
+
+async function deleteProduct(id) {
+    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+    
+    try {
+        const response = await fetch(`/api/productos/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            showToast('Producto eliminado', 'success');
+            loadProducts();
+        } else {
+            showToast('Error al eliminar producto', 'error');
+        }
+    } catch (error) {
+        showToast('Error de conexión', 'error');
+    }
+}
+
+// Movimientos
+function setMovementType(type) {
+    currentMovementType = type;
+    const btnEntrada = document.getElementById('btnEntrada');
+    const btnSalida = document.getElementById('btnSalida');
+    
+    if (type === 'entrada') {
+        btnEntrada.classList.add('active');
+        btnSalida.classList.remove('active');
+    } else {
+        btnSalida.classList.add('active');
+        btnEntrada.classList.remove('active');
+    }
+    
+    document.getElementById('movementType').value = type;
+}
+
+function openMovementModal(productId = null, type = 'entrada') {
+    setMovementType(type);
+    const modal = document.getElementById('movementModal');
+    document.getElementById('movementProductId').value = productId || '';
+    document.getElementById('movementQuantity').value = '';
+    document.getElementById('movementNotes').value = '';
+    document.getElementById('movementClient').value = '';
+    setDefaultDate();
+    
+    if (productId) {
+        document.getElementById('movementProductSearch').value = 'Producto seleccionado';
+        document.getElementById('movementProductResults').innerHTML = '';
+    } else {
+        document.getElementById('movementProductSearch').value = '';
+        document.getElementById('movementProductResults').innerHTML = '';
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeMovementModal() {
+    document.getElementById('movementModal').classList.add('hidden');
+}
+
+document.getElementById('movementProductSearch')?.addEventListener('input', async (e) => {
+    const query = e.target.value.toLowerCase();
+    const resultsDiv = document.getElementById('movementProductResults');
+    
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/productos');
+        const products = await response.json();
+        const filtered = products.filter(p => p.nombre.toLowerCase().includes(query));
+        
+        resultsDiv.innerHTML = filtered.map(p => `
+            <div class="search-result-item" onclick="selectMovementProduct(${p.id}, '${p.nombre}')">
+                ${p.nombre} - Stock: ${p.stock}
+            </div>
+        `).join('');
+    } catch (error) {
+        resultsDiv.innerHTML = '<p>Error al buscar</p>';
+    }
+});
+
+function selectMovementProduct(id, name) {
+    document.getElementById('movementProductId').value = id;
+    document.getElementById('movementProductSearch').value = name;
+    document.getElementById('movementProductResults').innerHTML = '';
+}
+
+async function saveMovement() {
+    const productId = document.getElementById('movementProductId').value;
+    const quantity = parseInt(document.getElementById('movementQuantity').value);
+    const date = document.getElementById('movementDate').value;
+    const notes = document.getElementById('movementNotes').value;
+    const client = document.getElementById('movementClient').value;
+    const type = document.getElementById('movementType').value;
+
+    if (!productId || !quantity || !date) {
+        showToast('Completa todos los campos requeridos', 'error');
+        return;
+    }
+
+    const movementData = {
+        producto_id: parseInt(productId),
+        tipo: type,
+        cantidad: quantity,
+        fecha: date,
+        notas: notes,
+        cliente: client
+    };
+
+    try {
+        const response = await fetch('/api/movimientos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(movementData)
+        });
+
+        if (response.ok) {
+            showToast('Movimiento registrado', 'success');
+            closeMovementModal();
+            if (currentSection === 'movements') loadMovements();
+            if (currentSection === 'dashboard') loadDashboard();
+        } else {
+            const error = await response.json();
+            showToast(error.error || 'Error al registrar movimiento', 'error');
+        }
+    } catch (error) {
+        showToast('Error de conexión', 'error');
+    }
+}
+
+async function loadMovements() {
+    try {
+        const response = await fetch('/api/movimientos');
+        const movements = await response.json();
+        displayMovements(movements, 'movementsTableBody');
+        hideSpinner('movementsSection');
+    } catch (error) {
+        showToast('Error al cargar movimientos', 'error');
+        hideSpinner('movementsSection');
+    }
+}
+
+async function loadHistory() {
+    try {
+        const response = await fetch('/api/movimientos');
+        const movements = await response.json();
+        displayMovements(movements, 'historyTableBody');
+        hideSpinner('historySection');
+    } catch (error) {
+        showToast('Error al cargar historial', 'error');
+        hideSpinner('historySection');
+    }
+}
+
+function displayMovements(movements, tableBodyId) {
+    const tbody = document.getElementById(tableBodyId);
+    if (!movements || movements.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">No hay movimientos registrados</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = movements.map(m => `
+        <tr>
+            <td>${new Date(m.fecha).toLocaleDateString()}</td>
+            <td>${m.producto_nombre || m.producto_id}</td>
+            <td class="${m.tipo}">${m.tipo}</td>
+            <td>${m.cantidad}</td>
+            <td>${m.cliente || '-'}</td>
+            <td>${m.notas || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+document.getElementById('historyFilter')?.addEventListener('input', async (e) => {
+    const query = e.target.value.toLowerCase();
+    try {
+        const response = await fetch('/api/movimientos');
+        const movements = await response.json();
+        const filtered = movements.filter(m => 
+            (m.producto_nombre && m.producto_nombre.toLowerCase().includes(query)) ||
+            (m.tipo && m.tipo.toLowerCase().includes(query)) ||
+            (m.cliente && m.cliente.toLowerCase().includes(query))
+        );
+        displayMovements(filtered, 'historyTableBody');
+    } catch (error) {
+        showToast('Error al filtrar', 'error');
+    }
+});
+
+// Utilidades
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function setDefaultDate() {
+    const dateInput = document.getElementById('movementDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+}
+
+function hideSpinner(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        const spinner = section.querySelector('.spinner');
+        if (spinner) spinner.classList.add('hidden');
+    }
+}
+</script>
+</body>
+</html>
