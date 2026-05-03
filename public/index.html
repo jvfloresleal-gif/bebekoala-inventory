@@ -1217,12 +1217,12 @@ async function loadDashboard() {
                 <p class="big-number">$${(data.valorInventario || 0).toLocaleString()}</p>
             </div>
             <div class="card">
-                <h3>Movimientos Hoy</h3>
-                <p class="big-number">${data.movimientosHoy || 0}</p>
+                <h3>Bajo Stock (≤5)</h3>
+                <p class="big-number">${data.bajosStock || 0}</p>
             </div>
             <div class="card">
-                <h3>Bajo Stock</h3>
-                <p class="big-number">${data.bajoStock || 0}</p>
+                <h3>Sin Stock</h3>
+                <p class="big-number">${data.sinStock || 0}</p>
             </div>
         `;
 
@@ -1241,11 +1241,11 @@ async function loadDashboard() {
         }
 
         const stockAlerts = document.getElementById('stockAlerts');
-        if (data.bajoStockProductos && data.bajoStockProductos.length > 0) {
-            stockAlerts.innerHTML = data.bajoStockProductos.map(p => `
+        if (data.productosBajos && data.productosBajos.length > 0) {
+            stockAlerts.innerHTML = data.productosBajos.map(p => `
                 <div class="alert-item">
                     <span>${p.nombre}</span>
-                    <span class="stock-low">Stock: ${p.stock}</span>
+                    <span class="stock-low">Stock: ${p.cantidad}</span>
                 </div>
             `).join('');
         } else {
