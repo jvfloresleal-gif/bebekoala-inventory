@@ -2,20 +2,24 @@
 <html lang="es-MX">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bebekoala Inventory - Gestión de Ropa de Bebé</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bebekoala Inventory</title>
     <style>
         :root {
-            --bg: #fdf2f8;
-            --primary: #ec4899;
-            --primary-light: #fce7f3;
-            --blue: #60a5fa;
-            --blue-light: #dbeafe;
-            --green: #34d399;
+            --pink: #ec4899;
+            --pink-light: #fce7f3;
+            --pink-dark: #db2777;
+            --pink-grad: linear-gradient(135deg, #f472b6, #ec4899, #db2777);
+            --green: #10b981;
             --green-light: #d1fae5;
-            --red: #f87171;
+            --red: #ef4444;
             --red-light: #fee2e2;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --orange: #f59e0b;
+            --orange-light: #fef3c7;
             --white: #ffffff;
+            --bg: #fdf2f8;
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
@@ -25,1566 +29,747 @@
             --gray-600: #4b5563;
             --gray-700: #374151;
             --gray-800: #1f2937;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-            --radius-sm: 0.5rem;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
             --radius: 0.75rem;
             --radius-lg: 1rem;
-            --radius-xl: 1.25rem;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             color: var(--gray-800);
-            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
         }
-
-        .app-container {
-            max-width: 600px;
-            margin: 0 auto;
-            min-height: 100vh;
-            position: relative;
-            background: var(--bg);
-            padding-bottom: 80px;
+        .app {
+            max-width: 480px; margin: 0 auto; min-height: 100vh;
+            position: relative; padding-bottom: 70px; background: var(--bg);
         }
-
         /* Header */
         .header {
-            background: linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #db2777 100%);
-            padding: 1.25rem 1.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
+            background: var(--pink-grad);
+            padding: 1rem 1.25rem;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 4px 20px rgba(236,72,153,0.3);
+            display: flex; align-items: center; gap: 0.75rem;
         }
+        .header h1 { color: white; font-size: 1.2rem; font-weight: 700; }
+        .header span { color: rgba(255,255,255,0.85); font-size: 0.8rem; }
 
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        /* Sections */
+        .section { display: block; padding: 0.75rem; }
+        .hidden { display: none !important; }
 
-        .header-logo svg {
-            width: 36px;
-            height: 36px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
-
-        .header-title {
-            color: white;
-            font-size: 1.35rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.75rem;
-            font-weight: 500;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .btn-icon {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-icon:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-
-        .btn-icon:active {
-            transform: scale(0.95);
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 1.25rem;
-            animation: fadeInUp 0.4s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .section {
-            display: none;
-            animation: fadeInUp 0.4s ease-out;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        /* Cards */
-        .card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            border: 1px solid var(--gray-100);
-        }
-
-        .card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .card-icon.pink {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-        .card-icon.blue {
-            background: var(--blue-light);
-            color: var(--blue);
-        }
-        .card-icon.green {
-            background: var(--green-light);
-            color: var(--green);
-        }
-        .card-icon.red {
-            background: var(--red-light);
-            color: var(--red);
-        }
-
-        /* Dashboard Stats */
+        /* Stats Grid */
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;
         }
-
         .stat-card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            border: 1px solid var(--gray-100);
-            animation: slideInUp 0.5s ease-out;
-            animation-fill-mode: both;
+            background: var(--white); border-radius: var(--radius);
+            padding: 1rem; box-shadow: var(--shadow); text-align: center;
         }
+        .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .stat-card h3 { font-size: 0.75rem; color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card .num { font-size: 1.5rem; font-weight: 800; color: var(--gray-800); margin-top: 0.25rem; }
 
-        .stat-card:nth-child(1) {
-            animation-delay: 0.1s;
+        /* Content Card */
+        .content-card {
+            background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 0.75rem; overflow: hidden;
         }
-        .stat-card:nth-child(2) {
-            animation-delay: 0.2s;
+        .content-card .card-header {
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-100);
+            font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
         }
-        .stat-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-        .stat-card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
+        .content-card .card-body { padding: 0.5rem 1rem; }
 
-        .stat-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
+        /* Product Cards */
+        .product-grid { display: grid; gap: 0.5rem; }
+        .product-card {
+            background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.35rem;
         }
+        .product-card .top-row {
+            display: flex; justify-content: space-between; align-items: start;
+        }
+        .product-card .name { font-weight: 700; font-size: 0.95rem; }
+        .product-card .stock-badge {
+            background: var(--pink-light); padding: 0.15rem 0.6rem; border-radius: 1rem;
+            font-weight: 700; font-size: 0.9rem; color: var(--pink-dark); white-space: nowrap;
+        }
+        .product-card .meta { color: var(--gray-500); font-size: 0.8rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .product-card .meta span { display: flex; align-items: center; gap: 0.2rem; }
+        .product-card .actions { display: flex; gap: 0.4rem; margin-top: 0.25rem; flex-wrap: wrap; }
+        .product-card .actions button {
+            padding: 0.3rem 0.6rem; border-radius: 0.5rem; border: 1px solid var(--gray-200);
+            background: var(--white); font-size: 0.75rem; cursor: pointer;
+        }
+        .product-card .actions .edit { color: var(--blue); border-color: var(--blue-light); }
+        .product-card .actions .del { color: var(--red); border-color: var(--red-light); }
+        .product-card .actions .in { color: var(--green); border-color: var(--green-light); }
+        .product-card .actions .out { color: var(--red); border-color: var(--red-light); }
 
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.75rem;
-            font-size: 1.3rem;
+        /* Movement items */
+        .movement-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.6rem 0; border-bottom: 1px solid var(--gray-100);
         }
+        .movement-item:last-child { border-bottom: none; }
+        .movement-item .info { flex: 1; }
+        .movement-item .info .prod-name { font-weight: 600; font-size: 0.85rem; }
+        .movement-item .info .date { font-size: 0.75rem; color: var(--gray-400); }
+        .movement-item .type-badge {
+            font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.8rem;
+        }
+        .type-badge.entrada { background: var(--green-light); color: var(--green); }
+        .type-badge.salida { background: var(--red-light); color: var(--red); }
 
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--gray-800);
-            margin-bottom: 0.25rem;
+        /* Filter bar */
+        .filter-bar {
+            display: flex; gap: 0.5rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-100);
         }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--gray-500);
-            font-weight: 500;
+        .filter-btn {
+            padding: 0.35rem 0.9rem; border-radius: 1rem; border: 1px solid var(--gray-200);
+            background: var(--white); font-size: 0.8rem; cursor: pointer; font-weight: 500;
         }
-
-        /* Bar Chart */
-        .bar-chart {
-            display: flex;
-            align-items: flex-end;
-            gap: 0.5rem;
-            height: 120px;
-            padding: 0.5rem 0;
-        }
-
-        .bar {
-            flex: 1;
-            background: linear-gradient(180deg, #f472b6 0%, #ec4899 100%);
-            border-radius: 6px 6px 0 0;
-            transition: var(--transition);
-            position: relative;
-            min-height: 20px;
-            cursor: pointer;
-        }
-
-        .bar:hover {
-            filter: brightness(1.1);
-            transform: scaleY(1.05);
-            transform-origin: bottom;
-        }
-
-        .bar-label {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.65rem;
-            color: var(--gray-500);
-            white-space: nowrap;
-        }
-
-        .bar-value {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--gray-700);
-        }
-
-        /* Table */
-        .table-container {
-            overflow-x: auto;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-
-        thead {
-            background: var(--gray-50);
-        }
-
-        th {
-            padding: 0.875rem 1rem;
-            text-align: left;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--gray-500);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 2px solid var(--gray-200);
-        }
-
-        td {
-            padding: 0.875rem 1rem;
-            border-bottom: 1px solid var(--gray-100);
-            font-size: 0.875rem;
-        }
-
-        tbody tr {
-            transition: var(--transition);
-        }
-
-        tbody tr:hover {
-            background: var(--gray-50);
-        }
-
-        tbody tr:nth-child(even) {
-            background: var(--gray-50);
-        }
-
-        tbody tr:nth-child(even):hover {
-            background: #f3f4f6;
-        }
-
-        .product-image {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: var(--gray-200);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-
-        .badge-pink {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-        .badge-blue {
-            background: var(--blue-light);
-            color: var(--blue);
-        }
-        .badge-green {
-            background: var(--green-light);
-            color: #059669;
-        }
-        .badge-red {
-            background: var(--red-light);
-            color: #dc2626;
-        }
+        .filter-btn.active { background: var(--pink); color: white; border-color: var(--pink); }
 
         /* Buttons */
         .btn {
-            padding: 0.625rem 1.25rem;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 0.875rem;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            letter-spacing: 0.01em;
+            padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.85rem;
+            font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;
         }
+        .btn-primary { background: var(--pink); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--gray-300); color: var(--gray-600); }
+        .btn-green { background: var(--green); color: white; }
+        .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.78rem; }
 
-        .btn:active {
-            transform: scale(0.97);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
-        }
-        .btn-primary:hover {
-            background: #db2777;
-            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-green {
-            background: var(--green);
-            color: white;
-            box-shadow: 0 2px 8px rgba(52, 211, 153, 0.3);
-        }
-        .btn-green:hover {
-            background: #10b981;
-            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-red {
-            background: var(--red);
-            color: white;
-            box-shadow: 0 2px 8px rgba(248, 113, 113, 0.3);
-        }
-        .btn-red:hover {
-            background: #ef4444;
-            box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--gray-300);
-            color: var(--gray-700);
-        }
-        .btn-outline:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        /* Forms */
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--gray-700);
-            margin-bottom: 0.375rem;
-            letter-spacing: 0.02em;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            transition: var(--transition);
-            background: var(--white);
-            color: var(--gray-800);
-            font-family: inherit;
-        }
-
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .input-icon {
-            position: relative;
-        }
-
-        .input-icon .form-input {
-            padding-left: 2.75rem;
-        }
-
-        .input-icon svg {
-            position: absolute;
-            left: 0.875rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-400);
-            pointer-events: none;
-        }
-
-        /* Bottom Navigation */
+        /* Bottom Nav */
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 600px;
-            background: var(--white);
-            border-top: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-around;
-            padding: 0.5rem 0;
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-            backdrop-filter: blur(10px);
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px;
+            background: var(--white); border-top: 1px solid var(--gray-200);
+            display: flex; z-index: 200; padding: 0.35rem 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
-
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            border-radius: var(--radius);
-            position: relative;
-            color: var(--gray-400);
-            text-decoration: none;
-            border: none;
-            background: none;
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 500;
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            padding: 0.3rem 0; border: none; background: none; cursor: pointer;
+            color: var(--gray-400); font-size: 0.65rem; font-weight: 500; transition: all 0.2s;
         }
-
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            transition: var(--transition);
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-        }
-
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            width: 32px;
-            height: 3px;
-            background: var(--primary);
-            border-radius: 0 0 4px 4px;
-        }
-
-        .nav-item:active {
-            transform: scale(0.9);
-        }
+        .nav-item .nav-icon { font-size: 1.3rem; line-height: 1.4; }
+        .nav-item.active { color: var(--pink); }
+        .nav-item.active .nav-icon { transform: scale(1.1); }
 
         /* Modal */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 200;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            animation: fadeIn 0.3s ease-out;
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 300;
+            justify-content: center; align-items: center; padding: 1rem;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
+        .modal-overlay.show { display: flex; }
         .modal {
-            background: var(--white);
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-            width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+            background: var(--white); border-radius: var(--radius-lg);
+            width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
+            box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease;
         }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
-        }
-
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            background: var(--white);
-            z-index: 10;
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 1rem 1.25rem; border-bottom: 1px solid var(--gray-100);
+            display: flex; justify-content: space-between; align-items: center;
         }
+        .modal-header h3 { font-size: 1rem; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-400); padding: 0.25rem; }
+        .modal-body { padding: 1rem 1.25rem; }
+        .modal-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--gray-100); display: flex; gap: 0.5rem; justify-content: flex-end; }
 
-        .modal-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--gray-800);
+        /* Form */
+        .form-group { margin-bottom: 0.75rem; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.3rem; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--gray-200);
+            border-radius: 0.5rem; font-size: 0.9rem; background: var(--white);
+            font-family: inherit; color: var(--gray-800);
         }
-
-        .modal-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background: var(--gray-100);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-            color: var(--gray-600);
-        }
-
-        .modal-close:hover {
-            background: var(--gray-200);
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-200);
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            position: sticky;
-            bottom: 0;
-            background: var(--white);
-        }
+        .form-textarea { min-height: 60px; resize: vertical; }
+        .form-input:focus, .form-select:focus { outline: 2px solid var(--pink-light); border-color: var(--pink); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
         /* Toast */
         .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--gray-800);
-            color: white;
-            padding: 0.875rem 1.5rem;
-            border-radius: var(--radius-lg);
-            font-weight: 500;
-            font-size: 0.875rem;
-            z-index: 300;
-            box-shadow: var(--shadow-lg);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            max-width: 90%;
-            white-space: nowrap;
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--gray-800); color: white; padding: 0.7rem 1.2rem;
+            border-radius: 0.5rem; font-size: 0.85rem; font-weight: 500;
+            z-index: 400; opacity: 0; transition: all 0.3s; white-space: nowrap;
         }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.success { background: var(--green); }
+        .toast.error { background: var(--red); }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
+        /* Empty state */
+        .empty-state { text-align: center; padding: 2rem 1rem; color: var(--gray-400); }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
 
-        .toast.success {
-            background: #059669;
-        }
-        .toast.error {
-            background: #dc2626;
-        }
-
-        /* Loading Spinner */
+        /* Spinner */
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--gray-200);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 2rem auto;
+            display: flex; justify-content: center; padding: 2rem;
         }
-
-        /* Filter Bar */
-        .filter-bar {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
+        .spinner::after {
+            content: ''; width: 24px; height: 24px;
+            border: 3px solid var(--gray-200); border-top-color: var(--pink);
+            border-radius: 50%; animation: spin 0.6s linear infinite;
         }
+        .spinner.hidden { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            border: 2px solid var(--gray-200);
-            background: var(--white);
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: var(--transition);
-            color: var(--gray-600);
+        /* Catalog */
+        .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .catalog-item {
+            background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; text-align: center;
         }
+        .catalog-item .cat-img { height: 100px; background: var(--pink-light); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .catalog-item .cat-body { padding: 0.5rem; }
+        .catalog-item .cat-name { font-weight: 700; font-size: 0.85rem; }
+        .catalog-item .cat-price { color: var(--pink); font-weight: 700; font-size: 0.9rem; margin: 0.15rem 0; }
+        .catalog-item .cat-meta { color: var(--gray-400); font-size: 0.72rem; }
 
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .filter-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .filter-btn.active:hover {
-            color: white;
-        }
-
-        /* Responsive */
-        @media (min-width: 768px) {
-            .app-container {
-                padding-bottom: 100px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-
-            .header {
-                padding: 1.5rem 2rem;
-            }
-
-            .main-content {
-                padding: 1.5rem 2rem;
-            }
-
-            .modal {
-                border-radius: var(--radius-xl);
-                margin: 2rem;
-                max-height: 80vh;
-            }
-
-            .bottom-nav {
-                padding: 0.75rem 0;
-            }
-
-            .nav-item {
-                font-size: 0.75rem;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .app-container {
-                max-width: 800px;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--gray-300);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--gray-400);
+        .whatsapp-btn {
+            display: block; width: 100%;
+            background: #25D366; color: white; text-align: center;
+            padding: 0.75rem; border-radius: var(--radius); border: none;
+            font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 0.75rem;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-logo">
-                <svg viewBox="0 0 36 36" fill="none">
-                    <circle cx="18" cy="18" r="17" fill="white" opacity="0.2"/>
-                    <circle cx="18" cy="14" r="8" fill="white"/>
-                    <circle cx="14" cy="12" r="1.5" fill="#ec4899"/>
-                    <circle cx="22" cy="12" r="1.5" fill="#ec4899"/>
-                    <path d="M13 17 Q18 22 23 17" stroke="#ec4899" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <ellipse cx="18" cy="28" rx="10" ry="5" fill="white" opacity="0.3"/>
-                </svg>
-                <div>
-                    <div class="header-title">Bebekoala</div>
-                    <div class="header-subtitle">Inventory</div>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button class="btn-icon" onclick="refreshData()" title="Actualizar">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M23 4v6h-6M1 20v-6h6"/>
-                        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                    </svg>
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content" id="mainContent">
-            <!-- Dashboard Section -->
-            <section class="section active" id="dashboardSection">
-                <div class="stats-grid" id="statsGrid">
-                    <div class="spinner"></div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <span class="card-icon pink">📊</span>
-                            Valor del Inventario
-                        </h3>
-                    </div>
-                    <div class="bar-chart" id="barChart">
-                        <div class="spinner"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Products Section -->
-            <section class="section" id="productsSection">
-                <div class="card-header" style="margin-bottom: 1rem;">
-                    <h3 class="card-title">
-                        <span class="card-icon pink">👶</span>
-                        Productos
-                    </h3>
-                    <button class="btn btn-primary btn-sm" onclick="openProductModal()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Nuevo
-                    </button>
-                </div>
-                <div class="table-container" id="productsTable">
-                    <div class="spinner"></div>
-                </div>
-            </section>
-
-            <!-- Movements Section -->
-            <section class="section" id="movementsSection">
-                <div class="card-header" style="margin-bottom: 1rem;">
-                    <h3 class="card-title">
-                        <span class="card-icon blue">📦</span>
-                        Movimientos
-                    </h3>
-                    <button class="btn btn-primary btn-sm" onclick="openMovementModal()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Registrar
-                    </button>
-                </div>
-                <div class="filter-bar" id="movementFilters">
-                    <button class="filter-btn active" onclick="filterMovements('all')">Todos</button>
-                    <button class="filter-btn" onclick="filterMovements('entrada')">Entradas</button>
-                    <button class="filter-btn" onclick="filterMovements('salida')">Salidas</button>
-                </div>
-                <div class="table-container" id="movementsTable">
-                    <div class="spinner"></div>
-                </div>
-            </section>
-
-            <!-- History Section -->
-            <section class="section" id="historySection">
-                <div class="card-header" style="margin-bottom: 1rem;">
-                    <h3 class="card-title">
-                        <span class="card-icon green">📋</span>
-                        Historial
-                    </h3>
-                </div>
-                <div class="filter-bar">
-                    <button class="filter-btn active" onclick="filterHistory('all')">Todos</button>
-                    <button class="filter-btn" onclick="filterHistory('entrada')">Entradas</button>
-                    <button class="filter-btn" onclick="filterHistory('salida')">Salidas</button>
-                </div>
-                <div class="table-container" id="historyTable">
-                    <div class="spinner"></div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
-            <button class="nav-item active" onclick="navigateTo('dashboard')" data-section="dashboard">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-                <span>Dashboard</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('products')" data-section="products">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                    <line x1="12" y1="22.08" x2="12" y2="12"/>
-                </svg>
-                <span>Productos</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('movements')" data-section="movements">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                </svg>
-                <span>Movimientos</span>
-            </button>
-            <button class="nav-item" onclick="navigateTo('history')" data-section="history">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span>Historial</span>
-            </button>
-        </nav>
-
-        <!-- Toast Notification -->
-        <div class="toast" id="toast"></div>
-
-        <!-- Product Modal -->
-        <div class="modal-overlay" id="productModal" style="display: none;">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="productModalTitle">Nuevo Producto</h3>
-                    <button class="modal-close" onclick="closeProductModal()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="productForm">
-                        <input type="hidden" id="productId">
-                        <div class="form-group">
-                            <label class="form-label">Nombre del Producto</label>
-                            <div class="input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
-                                    <line x1="7" y1="7" x2="7.01" y2="7"/>
-                                </svg>
-                                <input type="text" class="form-input" id="productName" placeholder="Ej: Mameluco Algodón" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Categoría</label>
-                            <select class="form-select" id="productCategory" required>
-                                <option value="">Seleccionar categoría</option>
-                                <option value="Mamelucos">Mamelucos</option>
-                                <option value="Conjuntos">Conjuntos</option>
-                                <option value="Vestidos">Vestidos</option>
-                                <option value="Pijamas">Pijamas</option>
-                                <option value="Accesorios">Accesorios</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Precio (MX$)</label>
-                            <div class="input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="12" y1="1" x2="12" y2="23"/>
-                                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-                                </svg>
-                                <input type="number" class="form-input" id="productPrice" placeholder="0.00" step="0.01" min="0" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Stock Inicial</label>
-                            <div class="input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-                                </svg>
-                                <input type="number" class="form-input" id="productStock" placeholder="0" min="0" required>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-outline" onclick="closeProductModal()">Cancelar</button>
-                    <button class="btn btn-primary" onclick="saveProduct()">Guardar Producto</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Movement Modal -->
-        <div class="modal-overlay" id="movementModal" style="display: none;">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3 class="modal-title">Registrar Movimiento</h3>
-                    <button class="modal-close" onclick="closeMovementModal()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="movementForm">
-                        <div class="form-group">
-                            <label class="form-label">Producto</label>
-                            <select class="form-select" id="movementProduct" required>
-                                <option value="">Seleccionar producto</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tipo de Movimiento</label>
-                            <div style="display: flex; gap: 0.75rem;">
-                                <button type="button" class="btn btn-green" style="flex: 1;" onclick="setMovementType('entrada')" id="btnEntrada">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <line x1="12" y1="19" x2="12" y2="5"/>
-                                        <polyline points="5 12 12 5 19 12"/>
-                                    </svg>
-                                    Entrada
-                                </button>
-                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="setMovementType('salida')" id="btnSalida">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <line x1="12" y1="5" x2="12" y2="19"/>
-                                        <polyline points="19 12 12 19 5 12"/>
-                                    </svg>
-                                    Salida
-                                </button>
-                            </div>
-                            <input type="hidden" id="movementType" value="entrada">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Cantidad</label>
-                            <div class="input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 20V10M18 20V4M6 20v-4"/>
-                                </svg>
-                                <input type="number" class="form-input" id="movementQuantity" placeholder="0" min="1" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Fecha</label>
-                            <div class="input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                                <input type="date" class="form-input" id="movementDate" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Notas</label>
-                            <textarea class="form-textarea" id="movementNotes" placeholder="Notas adicionales..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Cliente (opcional)</label>
-                            <div class="input-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                                    <circle cx="12" cy="7" r="4"/>
-                                </svg>
-                                <input type="text" class="form-input" id="movementClient" placeholder="Nombre del cliente">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-outline" onclick="closeMovementModal()">Cancelar</button>
-                    <button class="btn btn-primary" onclick="saveMovement()" id="saveMovementBtn">Registrar Entrada</button>
-                </div>
-            </div>
+<div class="app" id="app">
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <h1>🐨 Bebekoala</h1>
+            <span>Gestión de Inventario</span>
         </div>
     </div>
 
-    <script>
-// Variables globales
+    <!-- Dashboard -->
+    <section class="section" id="dashboardSection">
+        <div class="stats-grid" id="statsGrid">
+            <div class="spinner"></div>
+        </div>
+        <div id="dashboardContent"></div>
+    </section>
+
+    <!-- Products -->
+    <section class="section hidden" id="productsSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <h2 style="font-size:1.1rem;">👶 Productos</h2>
+            <button class="btn btn-primary btn-sm" onclick="openProductModal()">+ Nuevo</button>
+        </div>
+        <div id="productsTable">
+            <div class="spinner"></div>
+        </div>
+    </section>
+
+    <!-- Movements -->
+    <section class="section hidden" id="movementsSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <h2 style="font-size:1.1rem;">📦 Movimientos</h2>
+            <button class="btn btn-primary btn-sm" onclick="openMovementModal()">+ Registrar</button>
+        </div>
+        <div class="content-card">
+            <div class="filter-bar" id="movementFilters">
+                <button class="filter-btn active" onclick="filterMovements('all',this)">Todos</button>
+                <button class="filter-btn" onclick="filterMovements('entrada',this)">Entradas</button>
+                <button class="filter-btn" onclick="filterMovements('salida',this)">Salidas</button>
+            </div>
+            <div class="card-body" id="movementsTable"><div class="spinner"></div></div>
+        </div>
+    </section>
+
+    <!-- Catalog -->
+    <section class="section hidden" id="catalogSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <h2 style="font-size:1.1rem;">📋 Catálogo</h2>
+            <button class="btn btn-green btn-sm" onclick="shareCatalog()">📱 Compartir</button>
+        </div>
+        <div id="catalogContent">
+            <div class="spinner"></div>
+        </div>
+    </section>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-section="dashboard">
+            <span class="nav-icon">📊</span> Dashboard
+        </button>
+        <button class="nav-item" data-section="products">
+            <span class="nav-icon">👶</span> Productos
+        </button>
+        <button class="nav-item" data-section="movements">
+            <span class="nav-icon">📦</span> Movimientos
+        </button>
+        <button class="nav-item" data-section="catalog">
+            <span class="nav-icon">📋</span> Catálogo
+        </button>
+    </nav>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="productModalTitle">Nuevo Producto</h3>
+            <button class="modal-close" onclick="closeProductModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="productId">
+            <div class="form-group">
+                <label class="form-label">Nombre *</label>
+                <input class="form-input" id="productName" placeholder="Ej: Mameluco Algodón">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Categoría</label>
+                <select class="form-select" id="productCategory">
+                    <option value="">Seleccionar</option>
+                    <option value="Mamelucos">Mamelucos</option>
+                    <option value="Conjuntos">Conjuntos</option>
+                    <option value="Vestidos">Vestidos</option>
+                    <option value="Pijamas">Pijamas</option>
+                    <option value="Accesorios">Accesorios</option>
+                    <option value="Ropa">Ropa</option>
+                    <option value="Zapatos">Zapatos</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Precio Venta</label>
+                    <input class="form-input" id="productPrice" type="number" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Precio Costo</label>
+                    <input class="form-input" id="productCost" type="number" step="0.01" min="0" placeholder="0.00">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Stock</label>
+                    <input class="form-input" id="productStock" type="number" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Talla</label>
+                    <input class="form-input" id="productSize" placeholder="Ej: 3-6m">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Color</label>
+                    <input class="form-input" id="productColor" placeholder="Ej: Rosa">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Proveedor</label>
+                    <input class="form-input" id="productSupplier" placeholder="Nombre del proveedor">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeProductModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveProduct()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Movement Modal -->
+<div class="modal-overlay" id="movementModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Registrar Movimiento</h3>
+            <button class="modal-close" onclick="closeMovementModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Producto *</label>
+                <select class="form-select" id="movementProduct">
+                    <option value="">Cargando productos...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tipo</label>
+                <div style="display:flex;gap:0.5rem;">
+                    <button type="button" class="btn btn-green" style="flex:1;" id="btnEntrada" onclick="setMovementType('entrada')">📥 Entrada</button>
+                    <button type="button" class="btn btn-outline" style="flex:1;" id="btnSalida" onclick="setMovementType('salida')">📤 Salida</button>
+                </div>
+                <input type="hidden" id="movementType" value="entrada">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Cantidad *</label>
+                    <input class="form-input" id="movementQuantity" type="number" min="1" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha</label>
+                    <input class="form-input" id="movementDate" type="date">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cliente</label>
+                <input class="form-input" id="movementClient" placeholder="Nombre del cliente (opcional)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea class="form-textarea" id="movementNotes" placeholder="Notas adicionales..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeMovementModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveMovement()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// State
 let editingProductId = null;
 let currentMovementType = 'entrada';
 let currentSection = 'dashboard';
 let allMovementsCache = [];
+let allProductsCache = [];
 
-// Inicialización
+// Init
 document.addEventListener('DOMContentLoaded', () => {
-    setupNavigation();
-    loadDashboard();
-    setDefaultDate();
-    loadMovementProductSelect();
-});
-
-// Navegación
-function setupNavigation() {
-    document.querySelectorAll('[data-section]').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const section = item.dataset.section;
-            navigateTo(section);
+    document.querySelectorAll('[data-section]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const section = btn.dataset.section;
+            document.querySelectorAll('[data-section]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(section + 'Section').classList.remove('hidden');
+            currentSection = section;
+            if (section === 'dashboard') loadDashboard();
+            else if (section === 'products') loadProducts();
+            else if (section === 'movements') loadMovements();
+            else if (section === 'catalog') loadCatalog();
         });
     });
-}
-
-function navigateTo(section) {
-    currentSection = section;
-    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(`${section}Section`).classList.remove('hidden');
-    
-    document.querySelectorAll('[data-section]').forEach(nav => {
-        nav.classList.remove('active');
-        if (nav.dataset.section === section) nav.classList.add('active');
-    });
-
-    switch(section) {
-        case 'dashboard': loadDashboard(); break;
-        case 'products': loadProducts(); break;
-        case 'movements': loadMovements(); break;
-        case 'history': loadHistory(); break;
-    }
-}
+    loadDashboard();
+    loadProductSelect();
+    setDefaultDate();
+});
 
 // ===== DASHBOARD =====
 async function loadDashboard() {
     try {
-        const response = await fetch('/api/dashboard');
-        const data = await response.json();
-
-        // Stats cards → statsGrid
-        document.getElementById('statsGrid').innerHTML = `
-            <div class="card stat-card">
-                <div class="stat-icon pink">📦</div>
-                <div class="stat-info">
-                    <h3>Total Productos</h3>
-                    <p class="big-number">${data.totalProductos || 0}</p>
-                </div>
-            </div>
-            <div class="card stat-card">
-                <div class="stat-icon green">💰</div>
-                <div class="stat-info">
-                    <h3>Valor Inventario</h3>
-                    <p class="big-number">$${(data.valorInventario || 0).toLocaleString()}</p>
-                </div>
-            </div>
-            <div class="card stat-card">
-                <div class="stat-icon orange">⚠️</div>
-                <div class="stat-info">
-                    <h3>Bajo Stock</h3>
-                    <p class="big-number">${data.bajosStock || 0}</p>
-                </div>
-            </div>
-            <div class="card stat-card">
-                <div class="stat-icon red">🚫</div>
-                <div class="stat-info">
-                    <h3>Sin Stock</h3>
-                    <p class="big-number">${data.sinStock || 0}</p>
-                </div>
-            </div>
+        const r = await fetch('/api/dashboard');
+        const d = await r.json();
+        const grid = document.getElementById('statsGrid');
+        grid.innerHTML = `
+            <div class="stat-card"><div class="stat-icon">📦</div><h3>Productos</h3><div class="num">${d.totalProductos||0}</div></div>
+            <div class="stat-card"><div class="stat-icon">💰</div><h3>Valor Inv.</h3><div class="num">$${(d.valorInventario||0).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-icon">⚠️</div><h3>Bajo Stock</h3><div class="num" style="color:var(--orange)">${d.bajosStock||0}</div></div>
+            <div class="stat-card"><div class="stat-icon">🚫</div><h3>Sin Stock</h3><div class="num" style="color:var(--red)">${d.sinStock||0}</div></div>
         `;
-
-        // Recent movements + stock alerts → barChart area
-        const barChart = document.getElementById('barChart');
-        let html = '<div style="display:grid;grid-template-columns:1fr;gap:1rem;">';
-        
+        let html = '';
         // Recent movements
-        html += '<div class="card"><div class="card-header"><h4>📋 Últimos Movimientos</h4></div>';
-        if (data.ultimosMovimientos && data.ultimosMovimientos.length > 0) {
-            html += data.ultimosMovimientos.map(m => `
-                <div class="movement-item" style="display:flex;justify-content:space-between;padding:0.5rem 1rem;border-bottom:1px solid var(--gray-200);">
-                    <span><strong>${m.producto_nombre || 'Producto #'+m.producto_id}</strong></span>
-                    <span class="${m.tipo}" style="font-weight:600;">${m.tipo === 'entrada' ? '📥 +' : '📤 -'}${m.cantidad}</span>
-                    <span style="color:var(--gray-500);font-size:0.85rem;">${new Date(m.fecha).toLocaleDateString()}</span>
-                </div>
-            `).join('');
-        } else {
-            html += '<p style="padding:1rem;color:var(--gray-500);">No hay movimientos recientes</p>';
-        }
-        html += '</div>';
-
-        // Low stock alerts
-        html += '<div class="card"><div class="card-header"><h4>🔔 Alertas de Stock</h4></div>';
-        if (data.productosBajos && data.productosBajos.length > 0) {
-            html += data.productosBajos.map(p => `
-                <div class="alert-item" style="display:flex;justify-content:space-between;padding:0.5rem 1rem;border-bottom:1px solid var(--gray-200);">
-                    <span>${p.nombre}</span>
-                    <span style="color:var(--red);font-weight:600;">Stock: ${p.cantidad}</span>
-                </div>
-            `).join('');
-        } else {
-            html += '<p style="padding:1rem;color:var(--gray-500);">Todos los productos tienen stock suficiente ✅</p>';
-        }
+        html += '<div class="content-card"><div class="card-header">📋 Últimos Movimientos</div><div class="card-body">';
+        if (d.ultimosMovimientos && d.ultimosMovimientos.length) {
+            d.ultimosMovimientos.slice(0,5).forEach(m => {
+                html += `<div class="movement-item">
+                    <div class="info"><div class="prod-name">${m.producto_nombre||'#'+m.producto_id}</div><div class="date">${new Date(m.fecha).toLocaleDateString()}</div></div>
+                    <span class="type-badge ${m.tipo}">${m.tipo==='entrada'?'+':'-'}${m.cantidad}</span>
+                </div>`;
+            });
+        } else html += '<div class="empty-state"><div class="icon">📭</div><p>Sin movimientos aún</p></div>';
         html += '</div></div>';
-
-        barChart.innerHTML = html;
-        hideSpinner('dashboardSection');
-    } catch (error) {
-        console.error('Dashboard error:', error);
-        showToast('Error al cargar dashboard', 'error');
-        hideSpinner('dashboardSection');
+        // Low stock
+        html += '<div class="content-card"><div class="card-header">🔔 Alertas de Stock</div><div class="card-body">';
+        if (d.productosBajos && d.productosBajos.length) {
+            d.productosBajos.forEach(p => {
+                html += `<div class="movement-item"><span style="font-weight:600">${p.nombre}</span><span style="color:var(--red);font-weight:700">Stock: ${p.cantidad}</span></div>`;
+            });
+        } else html += '<div class="empty-state"><p>✅ Todos los productos tienen stock suficiente</p></div>';
+        html += '</div></div>';
+        document.getElementById('dashboardContent').innerHTML = html;
+    } catch(e) {
+        showToast('Error al cargar dashboard','error');
     }
 }
 
 // ===== PRODUCTOS =====
 async function loadProducts() {
     try {
-        const response = await fetch('/api/productos');
-        const products = await response.json();
-        displayProducts(products);
-        hideSpinner('productsSection');
-    } catch (error) {
-        showToast('Error al cargar productos', 'error');
-        hideSpinner('productsSection');
-    }
+        const r = await fetch('/api/productos');
+        allProductsCache = await r.json();
+        displayProducts(allProductsCache);
+    } catch(e) { showToast('Error al cargar productos','error'); }
 }
 
 function displayProducts(products) {
-    const container = document.getElementById('productsTable');
-    if (!products || products.length === 0) {
-        container.innerHTML = '<div class="card" style="padding:2rem;text-align:center;color:var(--gray-500);"><p>No hay productos registrados</p><p style="font-size:0.9rem;margin-top:0.5rem;">Usa el botón "Nuevo" para agregar el primero 🎉</p></div>';
+    const c = document.getElementById('productsTable');
+    if (!products || !products.length) {
+        c.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No hay productos aún</p><p style="font-size:0.8rem;margin-top:0.5rem;color:var(--gray-400)">Crea tu primer producto</p></div>';
         return;
     }
-
-    container.innerHTML = '<div class="product-grid" style="display:grid;grid-template-columns:1fr;gap:0.75rem;">' +
-        products.map(p => `
-            <div class="card product-card" style="padding:1rem;">
-                <div style="display:flex;justify-content:space-between;align-items:start;">
-                    <div>
-                        <h3 style="margin-bottom:0.25rem;">${p.nombre}</h3>
-                        <p style="color:var(--gray-500);font-size:0.85rem;">
-                            ${p.categoria || 'Sin categoría'}${p.talla ? ' · Talla: '+p.talla : ''}${p.color ? ' · '+p.color : ''}
-                        </p>
-                    </div>
-                    <span style="background:var(--primary-light);padding:0.25rem 0.75rem;border-radius:1rem;font-weight:700;font-size:1.1rem;">${p.cantidad}</span>
-                </div>
-                <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.9rem;color:var(--gray-600);">
-                    <span>💰 Venta: <strong>$${parseFloat(p.precio_venta || 0).toLocaleString()}</strong></span>
-                    <span>📦 Costo: <strong>$${parseFloat(p.precio_costo || 0).toLocaleString()}</strong></span>
-                </div>
-                <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
-                    <button class="btn btn-sm btn-outline" onclick="openProductModal(${p.id})">✏️ Editar</button>
-                    <button class="btn btn-sm btn-outline" onclick="deleteProduct(${p.id})" style="color:var(--red);">🗑️ Eliminar</button>
-                    <button class="btn btn-sm btn-green" onclick="quickMovement(${p.id},'entrada')">+ Entrada</button>
-                    <button class="btn btn-sm btn-outline" onclick="quickMovement(${p.id},'salida')" style="color:var(--red);">- Salida</button>
-                </div>
+    c.innerHTML = '<div class="product-grid">' + products.map(p => `
+        <div class="product-card">
+            <div class="top-row">
+                <div class="name">${p.nombre}</div>
+                <div class="stock-badge">${p.cantidad||0} pz</div>
             </div>
-        `).join('') + '</div>';
+            <div class="meta">
+                <span>💰 Venta: $${(p.precio_venta||0).toFixed(2)}</span>
+                <span>📦 Costo: $${(p.precio_costo||0).toFixed(2)}</span>
+            </div>
+            <div class="meta">
+                ${p.categoria ? '<span>📁 '+p.categoria+'</span>' : ''}
+                ${p.talla ? '<span>📏 '+p.talla+'</span>' : ''}
+                ${p.color ? '<span>🎨 '+p.color+'</span>' : ''}
+            </div>
+            <div class="actions">
+                <button class="edit" onclick="openProductModal(${p.id})">✏️ Editar</button>
+                <button class="in" onclick="quickMovement(${p.id},'entrada')">+ Entrada</button>
+                <button class="out" onclick="quickMovement(${p.id},'salida')">- Salida</button>
+                <button class="del" onclick="deleteProduct(${p.id})">🗑️</button>
+            </div>
+        </div>
+    `).join('') + '</div>';
 }
 
-function openProductModal(productId = null) {
-    editingProductId = productId;
-    const modal = document.getElementById('productModal');
-    document.getElementById('productForm').reset();
-    document.getElementById('productId').value = '';
-
-    if (productId) {
+function openProductModal(id) {
+    editingProductId = id;
+    document.getElementById('productForm') && document.getElementById('productForm').reset();
+    const empty = () => {
+        document.getElementById('productId').value = '';
+        document.getElementById('productName').value = '';
+        document.getElementById('productPrice').value = '';
+        document.getElementById('productCost').value = '';
+        document.getElementById('productStock').value = '';
+        document.getElementById('productCategory').value = '';
+        document.getElementById('productSize').value = '';
+        document.getElementById('productColor').value = '';
+        document.getElementById('productSupplier').value = '';
+    };
+    if (id) {
         document.getElementById('productModalTitle').textContent = 'Editar Producto';
-        fetch(`/api/productos/${productId}`)
-            .then(res => res.json())
-            .then(p => {
-                document.getElementById('productId').value = p.id;
-                document.getElementById('productName').value = p.nombre || '';
-                document.getElementById('productPrice').value = p.precio_venta || '';
-                document.getElementById('productStock').value = p.cantidad || '';
-                document.getElementById('productCategory').value = p.categoria || '';
-            })
-            .catch(() => showToast('Error al cargar producto', 'error'));
+        fetch('/api/productos/'+id).then(r=>r.json()).then(p => {
+            document.getElementById('productId').value = p.id;
+            document.getElementById('productName').value = p.nombre||'';
+            document.getElementById('productPrice').value = p.precio_venta||'';
+            document.getElementById('productCost').value = p.precio_costo||'';
+            document.getElementById('productStock').value = p.cantidad||'';
+            document.getElementById('productCategory').value = p.categoria||'';
+            document.getElementById('productSize').value = p.talla||'';
+            document.getElementById('productColor').value = p.color||'';
+        }).catch(()=>showToast('Error al cargar','error'));
     } else {
         document.getElementById('productModalTitle').textContent = 'Nuevo Producto';
+        empty();
     }
-
-    modal.style.display = 'flex';
+    document.getElementById('productModal').classList.add('show');
 }
 
 function closeProductModal() {
-    document.getElementById('productModal').style.display = 'none';
+    document.getElementById('productModal').classList.remove('show');
     editingProductId = null;
 }
 
 async function saveProduct() {
-    const nombre = document.getElementById('productName').value;
-    const precio_venta = parseFloat(document.getElementById('productPrice').value) || 0;
-    const cantidad = parseInt(document.getElementById('productStock').value) || 0;
-    const categoria = document.getElementById('productCategory').value;
-
-    if (!nombre) {
-        showToast('El nombre del producto es requerido', 'error');
-        return;
-    }
-
+    const data = {
+        nombre: document.getElementById('productName').value,
+        precio_venta: parseFloat(document.getElementById('productPrice').value)||0,
+        precio_costo: parseFloat(document.getElementById('productCost').value)||0,
+        cantidad: parseInt(document.getElementById('productStock').value)||0,
+        categoria: document.getElementById('productCategory').value,
+        talla: document.getElementById('productSize').value,
+        color: document.getElementById('productColor').value
+    };
+    if (!data.nombre) { showToast('El nombre es requerido','error'); return; }
     try {
-        const url = editingProductId ? `/api/productos/${editingProductId}` : '/api/productos';
-        const method = editingProductId ? 'PUT' : 'POST';
-
-        const response = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, precio_venta, precio_costo: 0, cantidad, categoria, talla: '', color: '' })
+        const url = editingProductId ? '/api/productos/'+editingProductId : '/api/productos';
+        const r = await fetch(url, {
+            method: editingProductId ? 'PUT' : 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(data)
         });
-
-        if (response.ok) {
-            showToast(editingProductId ? 'Producto actualizado ✅' : 'Producto creado ✅', 'success');
-            closeProductModal();
-            loadProducts();
-        } else {
-            showToast('Error al guardar producto', 'error');
-        }
-    } catch (error) {
-        showToast('Error de conexión', 'error');
-    }
+        if (r.ok) {
+            showToast(editingProductId?'Producto actualizado✅':'Producto creado✅','success');
+            closeProductModal(); loadProducts();
+            if (currentSection==='dashboard') loadDashboard();
+            loadProductSelect();
+        } else showToast('Error al guardar','error');
+    } catch(e) { showToast('Error de conexión','error'); }
 }
 
 async function deleteProduct(id) {
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+    if (!confirm('¿Eliminar este producto?')) return;
     try {
-        const response = await fetch(`/api/productos/${id}`, { method: 'DELETE' });
-        if (response.ok) {
-            showToast('Producto eliminado', 'success');
-            loadProducts();
-        } else {
-            showToast('Error al eliminar producto', 'error');
-        }
-    } catch (error) {
-        showToast('Error de conexión', 'error');
-    }
+        const r = await fetch('/api/productos/'+id,{method:'DELETE'});
+        if (r.ok) { showToast('Eliminado✅','success'); loadProducts(); loadProductSelect(); }
+        else showToast('Error al eliminar','error');
+    } catch(e) { showToast('Error de conexión','error'); }
 }
 
 // ===== MOVIMIENTOS =====
-async function loadMovementProductSelect() {
+async function loadProductSelect() {
     try {
-        const response = await fetch('/api/productos');
-        const products = await response.json();
-        const select = document.getElementById('movementProduct');
-        select.innerHTML = '<option value="">Seleccionar producto</option>' +
-            products.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.cantidad})</option>`).join('');
-    } catch (e) {}
+        const r = await fetch('/api/productos');
+        const prods = await r.json();
+        const sel = document.getElementById('movementProduct');
+        sel.innerHTML = '<option value="">Seleccionar producto</option>' +
+            prods.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.cantidad})</option>`).join('');
+    } catch(e) {}
 }
 
-function setMovementType(type) {
-    currentMovementType = type;
-    document.getElementById('btnEntrada').className = type === 'entrada' ? 'btn btn-green' : 'btn btn-outline';
-    document.getElementById('btnSalida').className = type === 'salida' ? 'btn btn-green' : 'btn btn-outline';
-    document.getElementById('movementType').value = type;
+function setMovementType(t) {
+    currentMovementType = t;
+    document.getElementById('movementType').value = t;
+    document.getElementById('btnEntrada').className = t==='entrada' ? 'btn btn-green' : 'btn btn-outline';
+    document.getElementById('btnSalida').className = t==='salida' ? 'btn btn-green' : 'btn btn-outline';
 }
 
-function quickMovement(productId, type) {
-    openMovementModal(null, type);
-    document.getElementById('movementProduct').value = productId;
+async function loadMovements() {
+    try {
+        const r = await fetch('/api/movimientos');
+        allMovementsCache = await r.json();
+        filterMovements('all');
+    } catch(e) { showToast('Error al cargar movimientos','error'); }
 }
 
-function openMovementModal(productId = null, type = 'entrada') {
-    setMovementType(type);
-    const modal = document.getElementById('movementModal');
+function filterMovements(type, btn) {
+    if (btn) {
+        document.querySelectorAll('#movementFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    let filtered = allMovementsCache;
+    if (type && type !== 'all') filtered = allMovementsCache.filter(m => m.tipo === type);
+    const c = document.getElementById('movementsTable');
+    if (!filtered || !filtered.length) {
+        c.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Sin movimientos</p></div>';
+        return;
+    }
+    c.innerHTML = filtered.map(m => `
+        <div class="movement-item">
+            <div class="info">
+                <div class="prod-name">${m.producto_nombre||'#'+m.producto_id}</div>
+                <div class="date">${new Date(m.fecha).toLocaleDateString()} ${m.cliente ? '• '+m.cliente : ''}</div>
+                ${m.notas ? '<div style="font-size:0.75rem;color:var(--gray-400)">'+m.notas+'</div>' : ''}
+            </div>
+            <span class="type-badge ${m.tipo}">${m.tipo==='entrada'?'+':'-'}${m.cantidad}</span>
+        </div>
+    `).join('');
+}
+
+function openMovementModal() {
+    setMovementType('entrada');
     document.getElementById('movementQuantity').value = '';
     document.getElementById('movementNotes').value = '';
     document.getElementById('movementClient').value = '';
     setDefaultDate();
-    if (productId) document.getElementById('movementProduct').value = productId;
-    modal.style.display = 'flex';
+    document.getElementById('movementModal').classList.add('show');
+    loadProductSelect();
 }
 
 function closeMovementModal() {
-    document.getElementById('movementModal').style.display = 'none';
-}
-
-async function saveMovement() {
-    const productId = document.getElementById('movementProduct').value;
-    const quantity = parseInt(document.getElementById('movementQuantity').value);
-    const date = document.getElementById('movementDate').value;
-    const notes = document.getElementById('movementNotes').value;
-    const client = document.getElementById('movementClient').value;
-    const type = document.getElementById('movementType').value;
-
-    if (!productId || !quantity || !date) {
-        showToast('Completa todos los campos requeridos', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/movimientos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                producto_id: parseInt(productId),
-                tipo: type,
-                cantidad: quantity,
-                fecha: date,
-                notas: notes,
-                cliente: client
-            })
-        });
-
-        if (response.ok) {
-            showToast('Movimiento registrado ✅', 'success');
-            closeMovementModal();
-            loadMovementProductSelect();
-            if (currentSection === 'movements' || currentSection === 'history') {
-                if (currentSection === 'movements') loadMovements();
-                else loadHistory();
-            }
-            if (currentSection === 'dashboard') loadDashboard();
-        } else {
-            const err = await response.json();
-            showToast(err.error || 'Error al registrar movimiento', 'error');
-        }
-    } catch (error) {
-        showToast('Error de conexión', 'error');
-    }
-}
-
-// ===== MOVEMENTS SECTION =====
-async function loadMovements() {
-    try {
-        const response = await fetch('/api/movimientos');
-        allMovementsCache = await response.json();
-        displayMovements(allMovementsCache, 'movementsTable');
-        hideSpinner('movementsSection');
-    } catch (error) {
-        showToast('Error al cargar movimientos', 'error');
-        hideSpinner('movementsSection');
-    }
-}
-
-let currentMovementFilter = 'all';
-function filterMovements(filter) {
-    currentMovementFilter = filter;
-    document.querySelectorAll('#movementFilters .filter-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-
-    const filtered = filter === 'all' ? allMovementsCache : allMovementsCache.filter(m => m.tipo === filter);
-    displayMovements(filtered, 'movementsTable');
-}
-
-// ===== HISTORY SECTION =====
-async function loadHistory() {
-    try {
-        const response = await fetch('/api/movimientos');
-        allMovementsCache = await response.json();
-        displayMovements(allMovementsCache, 'historyTable');
-        hideSpinner('historySection');
-    } catch (error) {
-        showToast('Error al cargar historial', 'error');
-        hideSpinner('historySection');
-    }
-}
-
-let currentHistoryFilter = 'all';
-function filterHistory(filter) {
-    currentHistoryFilter = filter;
-    document.querySelectorAll('#historySection .filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-
-    const filtered = filter === 'all' ? allMovementsCache : allMovementsCache.filter(m => m.tipo === filter);
-    displayMovements(filtered, 'historyTable');
-}
-
-// ===== DISPLAY MOVEMENTS (shared) =====
-function displayMovements(movements, containerId) {
-    const container = document.getElementById(containerId);
-    if (!movements || movements.length === 0) {
-        container.innerHTML = '<div class="card" style="padding:2rem;text-align:center;color:var(--gray-500);"><p>No hay movimientos registrados</p></div>';
-        return;
-    }
-
-    container.innerHTML = '<div style="display:grid;gap:0.5rem;">' +
-        movements.map(m => `
-            <div class="card" style="padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                    <strong>${m.producto_nombre || 'Producto #'+m.producto_id}</strong>
-                    <span style="color:var(--gray-500);font-size:0.85rem;display:block;">
-                        ${new Date(m.fecha).toLocaleDateString()}${m.cliente ? ' · Cliente: '+m.cliente : ''}
-                    </span>
-                </div>
-                <div style="text-align:right;">
-                    <span style="font-weight:700;font-size:1.1rem;${m.tipo === 'entrada' ? 'color:var(--green);' : 'color:var(--red);'}">
-                        ${m.tipo === 'entrada' ? '+'+m.cantidad : '-'+m.cantidad}
-                    </span>
-                    ${m.notas ? '<div style="font-size:0.8rem;color:var(--gray-400);">'+m.notas+'</div>' : ''}
-                </div>
-            </div>
-        `).join('') + '</div>';
-}
-
-// Utilidades
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.className = `toast ${type}`;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+    document.getElementById('movementModal').classList.remove('show');
 }
 
 function setDefaultDate() {
-    const dateInput = document.getElementById('movementDate');
-    if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
+    const d = new Date();
+    document.getElementById('movementDate').value = d.toISOString().split('T')[0];
 }
 
-function hideSpinner(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section) {
-        const spinner = section.querySelector('.spinner');
-        if (spinner) spinner.classList.add('hidden');
-    }
+async function saveMovement() {
+    const producto_id = parseInt(document.getElementById('movementProduct').value);
+    const cantidad = parseInt(document.getElementById('movementQuantity').value);
+    if (!producto_id) { showToast('Selecciona un producto','error'); return; }
+    if (!cantidad || cantidad < 1) { showToast('Cantidad inválida','error'); return; }
+    try {
+        const r = await fetch('/api/movimientos', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                producto_id,
+                tipo: currentMovementType,
+                cantidad,
+                fecha: document.getElementById('movementDate').value,
+                notas: document.getElementById('movementNotes').value,
+                cliente: document.getElementById('movementClient').value
+            })
+        });
+        if (r.ok) {
+            showToast('Movimiento registrado✅','success');
+            closeMovementModal();
+            loadMovements();
+            if (currentSection==='dashboard') loadDashboard();
+            loadProductSelect();
+        } else {
+            const err = await r.text();
+            showToast('Error: '+err,'error');
+        }
+    } catch(e) { showToast('Error de conexión','error'); }
+}
+
+function quickMovement(id, tipo) {
+    currentMovementType = tipo;
+    document.getElementById('movementProduct').value = id;
+    setMovementType(tipo);
+    document.getElementById('movementQuantity').value = '';
+    document.getElementById('movementNotes').value = '';
+    document.getElementById('movementClient').value = '';
+    setDefaultDate();
+    document.getElementById('movementModal').classList.add('show');
+}
+
+// ===== CATALOG =====
+async function loadCatalog() {
+    try {
+        const r = await fetch('/api/productos');
+        const prods = await r.json();
+        const c = document.getElementById('catalogContent');
+        if (!prods || !prods.length) {
+            c.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No hay productos en el catálogo</p></div>';
+            return;
+        }
+        c.innerHTML = '<div class="catalog-grid">' + prods.map(p => `
+            <div class="catalog-item">
+                <div class="cat-img">🐨</div>
+                <div class="cat-body">
+                    <div class="cat-name">${p.nombre}</div>
+                    <div class="cat-price">$${(p.precio_venta||0).toFixed(2)}</div>
+                    <div class="cat-meta">${p.categoria||''} ${p.talla ? '• '+p.talla : ''}</div>
+                    <div class="cat-meta">Stock: ${p.cantidad||0}</div>
+                </div>
+            </div>
+        `).join('') + '</div>';
+        c.innerHTML += '<button class="whatsapp-btn" onclick="shareCatalog()">📱 Compartir por WhatsApp</button>';
+    } catch(e) { showToast('Error al cargar catálogo','error'); }
+}
+
+function shareCatalog() {
+    fetch('/api/productos').then(r=>r.json()).then(prods => {
+        if (!prods || !prods.length) { showToast('No hay productos para compartir','error'); return; }
+        let msg = '🐨 *Catálogo Bebekoala* 🐨\n\n';
+        prods.forEach((p,i) => {
+            msg += `${i+1}. *${p.nombre}*\n`;
+            msg += `   Precio: $${(p.precio_venta||0).toFixed(2)}\n`;
+            msg += `   ${p.categoria||''} ${p.talla ? '| Talla: '+p.talla : ''}\n`;
+            msg += `\n`;
+        });
+        msg += '¡Pregunta por disponibilidad! 🍼';
+        const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+        window.open(url, '_blank');
+    }).catch(() => showToast('Error al preparar catálogo','error'));
+}
+
+// ===== UTILITIES =====
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (type ? ' '+type : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
 }
 </script>
 </body>
