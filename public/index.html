@@ -1164,12 +1164,14 @@
 let editingProductId = null;
 let currentMovementType = 'entrada';
 let currentSection = 'dashboard';
+let allMovementsCache = [];
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     loadDashboard();
     setDefaultDate();
+    loadMovementProductSelect();
 });
 
 // Navegación
@@ -1201,65 +1203,87 @@ function navigateTo(section) {
     }
 }
 
-// Dashboard
+// ===== DASHBOARD =====
 async function loadDashboard() {
     try {
         const response = await fetch('/api/dashboard');
         const data = await response.json();
-        
-        document.getElementById('dashboardCards').innerHTML = `
-            <div class="card">
-                <h3>Total Productos</h3>
-                <p class="big-number">${data.totalProductos || 0}</p>
+
+        // Stats cards → statsGrid
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="card stat-card">
+                <div class="stat-icon pink">📦</div>
+                <div class="stat-info">
+                    <h3>Total Productos</h3>
+                    <p class="big-number">${data.totalProductos || 0}</p>
+                </div>
             </div>
-            <div class="card">
-                <h3>Valor Inventario</h3>
-                <p class="big-number">$${(data.valorInventario || 0).toLocaleString()}</p>
+            <div class="card stat-card">
+                <div class="stat-icon green">💰</div>
+                <div class="stat-info">
+                    <h3>Valor Inventario</h3>
+                    <p class="big-number">$${(data.valorInventario || 0).toLocaleString()}</p>
+                </div>
             </div>
-            <div class="card">
-                <h3>Bajo Stock (≤5)</h3>
-                <p class="big-number">${data.bajosStock || 0}</p>
+            <div class="card stat-card">
+                <div class="stat-icon orange">⚠️</div>
+                <div class="stat-info">
+                    <h3>Bajo Stock</h3>
+                    <p class="big-number">${data.bajosStock || 0}</p>
+                </div>
             </div>
-            <div class="card">
-                <h3>Sin Stock</h3>
-                <p class="big-number">${data.sinStock || 0}</p>
+            <div class="card stat-card">
+                <div class="stat-icon red">🚫</div>
+                <div class="stat-info">
+                    <h3>Sin Stock</h3>
+                    <p class="big-number">${data.sinStock || 0}</p>
+                </div>
             </div>
         `;
 
-        const recentMovements = document.getElementById('recentMovements');
+        // Recent movements + stock alerts → barChart area
+        const barChart = document.getElementById('barChart');
+        let html = '<div style="display:grid;grid-template-columns:1fr;gap:1rem;">';
+        
+        // Recent movements
+        html += '<div class="card"><div class="card-header"><h4>📋 Últimos Movimientos</h4></div>';
         if (data.ultimosMovimientos && data.ultimosMovimientos.length > 0) {
-            recentMovements.innerHTML = data.ultimosMovimientos.map(m => `
-                <div class="movement-item">
-                    <span>${m.producto_nombre || m.producto_id}</span>
-                    <span class="${m.tipo}">${m.tipo}</span>
-                    <span>${m.cantidad}</span>
-                    <span>${new Date(m.fecha).toLocaleDateString()}</span>
+            html += data.ultimosMovimientos.map(m => `
+                <div class="movement-item" style="display:flex;justify-content:space-between;padding:0.5rem 1rem;border-bottom:1px solid var(--gray-200);">
+                    <span><strong>${m.producto_nombre || 'Producto #'+m.producto_id}</strong></span>
+                    <span class="${m.tipo}" style="font-weight:600;">${m.tipo === 'entrada' ? '📥 +' : '📤 -'}${m.cantidad}</span>
+                    <span style="color:var(--gray-500);font-size:0.85rem;">${new Date(m.fecha).toLocaleDateString()}</span>
                 </div>
             `).join('');
         } else {
-            recentMovements.innerHTML = '<p>No hay movimientos recientes</p>';
+            html += '<p style="padding:1rem;color:var(--gray-500);">No hay movimientos recientes</p>';
         }
+        html += '</div>';
 
-        const stockAlerts = document.getElementById('stockAlerts');
+        // Low stock alerts
+        html += '<div class="card"><div class="card-header"><h4>🔔 Alertas de Stock</h4></div>';
         if (data.productosBajos && data.productosBajos.length > 0) {
-            stockAlerts.innerHTML = data.productosBajos.map(p => `
-                <div class="alert-item">
+            html += data.productosBajos.map(p => `
+                <div class="alert-item" style="display:flex;justify-content:space-between;padding:0.5rem 1rem;border-bottom:1px solid var(--gray-200);">
                     <span>${p.nombre}</span>
-                    <span class="stock-low">Stock: ${p.cantidad}</span>
+                    <span style="color:var(--red);font-weight:600;">Stock: ${p.cantidad}</span>
                 </div>
             `).join('');
         } else {
-            stockAlerts.innerHTML = '<p>No hay productos con bajo stock</p>';
+            html += '<p style="padding:1rem;color:var(--gray-500);">Todos los productos tienen stock suficiente ✅</p>';
         }
+        html += '</div></div>';
 
+        barChart.innerHTML = html;
         hideSpinner('dashboardSection');
     } catch (error) {
+        console.error('Dashboard error:', error);
         showToast('Error al cargar dashboard', 'error');
         hideSpinner('dashboardSection');
     }
 }
 
-// Productos
+// ===== PRODUCTOS =====
 async function loadProducts() {
     try {
         const response = await fetch('/api/productos');
@@ -1273,109 +1297,91 @@ async function loadProducts() {
 }
 
 function displayProducts(products) {
-    const container = document.getElementById('productsList');
+    const container = document.getElementById('productsTable');
     if (!products || products.length === 0) {
-        container.innerHTML = '<p>No hay productos registrados</p>';
+        container.innerHTML = '<div class="card" style="padding:2rem;text-align:center;color:var(--gray-500);"><p>No hay productos registrados</p><p style="font-size:0.9rem;margin-top:0.5rem;">Usa el botón "Nuevo" para agregar el primero 🎉</p></div>';
         return;
     }
-    
-    container.innerHTML = products.map(p => `
-        <div class="product-card">
-            <h3>${p.nombre}</h3>
-            <p>Precio: $${p.precio}</p>
-            <p>Costo: $${p.costo}</p>
-            <p>Stock: ${p.stock}</p>
-            <p>Categoría: ${p.categoria || 'N/A'}</p>
-            <p>Talle: ${p.talle || 'N/A'}</p>
-            <p>Color: ${p.color || 'N/A'}</p>
-            <div class="product-actions">
-                <button onclick="openProductModal(${p.id})">Editar</button>
-                <button onclick="deleteProduct(${p.id})">Eliminar</button>
-                <button onclick="openMovementModal(${p.id}, 'entrada')">+ Entrada</button>
-                <button onclick="openMovementModal(${p.id}, 'salida')">- Salida</button>
-            </div>
-        </div>
-    `).join('');
-}
 
-document.getElementById('productSearch')?.addEventListener('input', async (e) => {
-    const query = e.target.value.toLowerCase();
-    try {
-        const response = await fetch('/api/productos');
-        const products = await response.json();
-        const filtered = products.filter(p => 
-            p.nombre.toLowerCase().includes(query) ||
-            (p.categoria && p.categoria.toLowerCase().includes(query)) ||
-            (p.color && p.color.toLowerCase().includes(query))
-        );
-        displayProducts(filtered);
-    } catch (error) {
-        showToast('Error al buscar productos', 'error');
-    }
-});
+    container.innerHTML = '<div class="product-grid" style="display:grid;grid-template-columns:1fr;gap:0.75rem;">' +
+        products.map(p => `
+            <div class="card product-card" style="padding:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:start;">
+                    <div>
+                        <h3 style="margin-bottom:0.25rem;">${p.nombre}</h3>
+                        <p style="color:var(--gray-500);font-size:0.85rem;">
+                            ${p.categoria || 'Sin categoría'}${p.talla ? ' · Talla: '+p.talla : ''}${p.color ? ' · '+p.color : ''}
+                        </p>
+                    </div>
+                    <span style="background:var(--primary-light);padding:0.25rem 0.75rem;border-radius:1rem;font-weight:700;font-size:1.1rem;">${p.cantidad}</span>
+                </div>
+                <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.9rem;color:var(--gray-600);">
+                    <span>💰 Venta: <strong>$${parseFloat(p.precio_venta || 0).toLocaleString()}</strong></span>
+                    <span>📦 Costo: <strong>$${parseFloat(p.precio_costo || 0).toLocaleString()}</strong></span>
+                </div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-outline" onclick="openProductModal(${p.id})">✏️ Editar</button>
+                    <button class="btn btn-sm btn-outline" onclick="deleteProduct(${p.id})" style="color:var(--red);">🗑️ Eliminar</button>
+                    <button class="btn btn-sm btn-green" onclick="quickMovement(${p.id},'entrada')">+ Entrada</button>
+                    <button class="btn btn-sm btn-outline" onclick="quickMovement(${p.id},'salida')" style="color:var(--red);">- Salida</button>
+                </div>
+            </div>
+        `).join('') + '</div>';
+}
 
 function openProductModal(productId = null) {
     editingProductId = productId;
     const modal = document.getElementById('productModal');
-    const form = document.getElementById('productForm');
-    
-    form.reset();
+    document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
-    
+
     if (productId) {
+        document.getElementById('productModalTitle').textContent = 'Editar Producto';
         fetch(`/api/productos/${productId}`)
             .then(res => res.json())
-            .then(product => {
-                document.getElementById('productId').value = product.id;
-                document.getElementById('productName').value = product.nombre || '';
-                document.getElementById('productPrice').value = product.precio || '';
-                document.getElementById('productCost').value = product.costo || '';
-                document.getElementById('productStock').value = product.stock || '';
-                document.getElementById('productCategory').value = product.categoria || '';
-                document.getElementById('productSize').value = product.talle || '';
-                document.getElementById('productColor').value = product.color || '';
+            .then(p => {
+                document.getElementById('productId').value = p.id;
+                document.getElementById('productName').value = p.nombre || '';
+                document.getElementById('productPrice').value = p.precio_venta || '';
+                document.getElementById('productStock').value = p.cantidad || '';
+                document.getElementById('productCategory').value = p.categoria || '';
             })
             .catch(() => showToast('Error al cargar producto', 'error'));
+    } else {
+        document.getElementById('productModalTitle').textContent = 'Nuevo Producto';
     }
-    
-    modal.classList.remove('hidden');
+
+    modal.style.display = 'flex';
 }
 
 function closeProductModal() {
-    document.getElementById('productModal').classList.add('hidden');
+    document.getElementById('productModal').style.display = 'none';
     editingProductId = null;
 }
 
 async function saveProduct() {
-    const productData = {
-        nombre: document.getElementById('productName').value,
-        precio: parseFloat(document.getElementById('productPrice').value),
-        costo: parseFloat(document.getElementById('productCost').value),
-        stock: parseInt(document.getElementById('productStock').value),
-        categoria: document.getElementById('productCategory').value,
-        talle: document.getElementById('productSize').value,
-        color: document.getElementById('productColor').value
-    };
+    const nombre = document.getElementById('productName').value;
+    const precio_venta = parseFloat(document.getElementById('productPrice').value) || 0;
+    const cantidad = parseInt(document.getElementById('productStock').value) || 0;
+    const categoria = document.getElementById('productCategory').value;
 
-    if (!productData.nombre || isNaN(productData.precio) || isNaN(productData.stock)) {
-        showToast('Completa todos los campos requeridos', 'error');
+    if (!nombre) {
+        showToast('El nombre del producto es requerido', 'error');
         return;
     }
 
     try {
-        const url = editingProductId 
-            ? `/api/productos/${editingProductId}` 
-            : '/api/productos';
+        const url = editingProductId ? `/api/productos/${editingProductId}` : '/api/productos';
         const method = editingProductId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productData)
+            body: JSON.stringify({ nombre, precio_venta, precio_costo: 0, cantidad, categoria, talla: '', color: '' })
         });
 
         if (response.ok) {
-            showToast(editingProductId ? 'Producto actualizado' : 'Producto creado', 'success');
+            showToast(editingProductId ? 'Producto actualizado ✅' : 'Producto creado ✅', 'success');
             closeProductModal();
             loadProducts();
         } else {
@@ -1388,7 +1394,6 @@ async function saveProduct() {
 
 async function deleteProduct(id) {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-    
     try {
         const response = await fetch(`/api/productos/${id}`, { method: 'DELETE' });
         if (response.ok) {
@@ -1402,79 +1407,46 @@ async function deleteProduct(id) {
     }
 }
 
-// Movimientos
+// ===== MOVIMIENTOS =====
+async function loadMovementProductSelect() {
+    try {
+        const response = await fetch('/api/productos');
+        const products = await response.json();
+        const select = document.getElementById('movementProduct');
+        select.innerHTML = '<option value="">Seleccionar producto</option>' +
+            products.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.cantidad})</option>`).join('');
+    } catch (e) {}
+}
+
 function setMovementType(type) {
     currentMovementType = type;
-    const btnEntrada = document.getElementById('btnEntrada');
-    const btnSalida = document.getElementById('btnSalida');
-    
-    if (type === 'entrada') {
-        btnEntrada.classList.add('active');
-        btnSalida.classList.remove('active');
-    } else {
-        btnSalida.classList.add('active');
-        btnEntrada.classList.remove('active');
-    }
-    
+    document.getElementById('btnEntrada').className = type === 'entrada' ? 'btn btn-green' : 'btn btn-outline';
+    document.getElementById('btnSalida').className = type === 'salida' ? 'btn btn-green' : 'btn btn-outline';
     document.getElementById('movementType').value = type;
+}
+
+function quickMovement(productId, type) {
+    openMovementModal(null, type);
+    document.getElementById('movementProduct').value = productId;
 }
 
 function openMovementModal(productId = null, type = 'entrada') {
     setMovementType(type);
     const modal = document.getElementById('movementModal');
-    document.getElementById('movementProductId').value = productId || '';
     document.getElementById('movementQuantity').value = '';
     document.getElementById('movementNotes').value = '';
     document.getElementById('movementClient').value = '';
     setDefaultDate();
-    
-    if (productId) {
-        document.getElementById('movementProductSearch').value = 'Producto seleccionado';
-        document.getElementById('movementProductResults').innerHTML = '';
-    } else {
-        document.getElementById('movementProductSearch').value = '';
-        document.getElementById('movementProductResults').innerHTML = '';
-    }
-    
-    modal.classList.remove('hidden');
+    if (productId) document.getElementById('movementProduct').value = productId;
+    modal.style.display = 'flex';
 }
 
 function closeMovementModal() {
-    document.getElementById('movementModal').classList.add('hidden');
-}
-
-document.getElementById('movementProductSearch')?.addEventListener('input', async (e) => {
-    const query = e.target.value.toLowerCase();
-    const resultsDiv = document.getElementById('movementProductResults');
-    
-    if (query.length < 2) {
-        resultsDiv.innerHTML = '';
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/productos');
-        const products = await response.json();
-        const filtered = products.filter(p => p.nombre.toLowerCase().includes(query));
-        
-        resultsDiv.innerHTML = filtered.map(p => `
-            <div class="search-result-item" onclick="selectMovementProduct(${p.id}, '${p.nombre}')">
-                ${p.nombre} - Stock: ${p.stock}
-            </div>
-        `).join('');
-    } catch (error) {
-        resultsDiv.innerHTML = '<p>Error al buscar</p>';
-    }
-});
-
-function selectMovementProduct(id, name) {
-    document.getElementById('movementProductId').value = id;
-    document.getElementById('movementProductSearch').value = name;
-    document.getElementById('movementProductResults').innerHTML = '';
+    document.getElementById('movementModal').style.display = 'none';
 }
 
 async function saveMovement() {
-    const productId = document.getElementById('movementProductId').value;
+    const productId = document.getElementById('movementProduct').value;
     const quantity = parseInt(document.getElementById('movementQuantity').value);
     const date = document.getElementById('movementDate').value;
     const notes = document.getElementById('movementNotes').value;
@@ -1486,41 +1458,44 @@ async function saveMovement() {
         return;
     }
 
-    const movementData = {
-        producto_id: parseInt(productId),
-        tipo: type,
-        cantidad: quantity,
-        fecha: date,
-        notas: notes,
-        cliente: client
-    };
-
     try {
         const response = await fetch('/api/movimientos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(movementData)
+            body: JSON.stringify({
+                producto_id: parseInt(productId),
+                tipo: type,
+                cantidad: quantity,
+                fecha: date,
+                notas: notes,
+                cliente: client
+            })
         });
 
         if (response.ok) {
-            showToast('Movimiento registrado', 'success');
+            showToast('Movimiento registrado ✅', 'success');
             closeMovementModal();
-            if (currentSection === 'movements') loadMovements();
+            loadMovementProductSelect();
+            if (currentSection === 'movements' || currentSection === 'history') {
+                if (currentSection === 'movements') loadMovements();
+                else loadHistory();
+            }
             if (currentSection === 'dashboard') loadDashboard();
         } else {
-            const error = await response.json();
-            showToast(error.error || 'Error al registrar movimiento', 'error');
+            const err = await response.json();
+            showToast(err.error || 'Error al registrar movimiento', 'error');
         }
     } catch (error) {
         showToast('Error de conexión', 'error');
     }
 }
 
+// ===== MOVEMENTS SECTION =====
 async function loadMovements() {
     try {
         const response = await fetch('/api/movimientos');
-        const movements = await response.json();
-        displayMovements(movements, 'movementsTableBody');
+        allMovementsCache = await response.json();
+        displayMovements(allMovementsCache, 'movementsTable');
         hideSpinner('movementsSection');
     } catch (error) {
         showToast('Error al cargar movimientos', 'error');
@@ -1528,11 +1503,22 @@ async function loadMovements() {
     }
 }
 
+let currentMovementFilter = 'all';
+function filterMovements(filter) {
+    currentMovementFilter = filter;
+    document.querySelectorAll('#movementFilters .filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    const filtered = filter === 'all' ? allMovementsCache : allMovementsCache.filter(m => m.tipo === filter);
+    displayMovements(filtered, 'movementsTable');
+}
+
+// ===== HISTORY SECTION =====
 async function loadHistory() {
     try {
         const response = await fetch('/api/movimientos');
-        const movements = await response.json();
-        displayMovements(movements, 'historyTableBody');
+        allMovementsCache = await response.json();
+        displayMovements(allMovementsCache, 'historyTable');
         hideSpinner('historySection');
     } catch (error) {
         showToast('Error al cargar historial', 'error');
@@ -1540,40 +1526,42 @@ async function loadHistory() {
     }
 }
 
-function displayMovements(movements, tableBodyId) {
-    const tbody = document.getElementById(tableBodyId);
+let currentHistoryFilter = 'all';
+function filterHistory(filter) {
+    currentHistoryFilter = filter;
+    document.querySelectorAll('#historySection .filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    const filtered = filter === 'all' ? allMovementsCache : allMovementsCache.filter(m => m.tipo === filter);
+    displayMovements(filtered, 'historyTable');
+}
+
+// ===== DISPLAY MOVEMENTS (shared) =====
+function displayMovements(movements, containerId) {
+    const container = document.getElementById(containerId);
     if (!movements || movements.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">No hay movimientos registrados</td></tr>';
+        container.innerHTML = '<div class="card" style="padding:2rem;text-align:center;color:var(--gray-500);"><p>No hay movimientos registrados</p></div>';
         return;
     }
 
-    tbody.innerHTML = movements.map(m => `
-        <tr>
-            <td>${new Date(m.fecha).toLocaleDateString()}</td>
-            <td>${m.producto_nombre || m.producto_id}</td>
-            <td class="${m.tipo}">${m.tipo}</td>
-            <td>${m.cantidad}</td>
-            <td>${m.cliente || '-'}</td>
-            <td>${m.notas || '-'}</td>
-        </tr>
-    `).join('');
+    container.innerHTML = '<div style="display:grid;gap:0.5rem;">' +
+        movements.map(m => `
+            <div class="card" style="padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <strong>${m.producto_nombre || 'Producto #'+m.producto_id}</strong>
+                    <span style="color:var(--gray-500);font-size:0.85rem;display:block;">
+                        ${new Date(m.fecha).toLocaleDateString()}${m.cliente ? ' · Cliente: '+m.cliente : ''}
+                    </span>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-weight:700;font-size:1.1rem;${m.tipo === 'entrada' ? 'color:var(--green);' : 'color:var(--red);'}">
+                        ${m.tipo === 'entrada' ? '+'+m.cantidad : '-'+m.cantidad}
+                    </span>
+                    ${m.notas ? '<div style="font-size:0.8rem;color:var(--gray-400);">'+m.notas+'</div>' : ''}
+                </div>
+            </div>
+        `).join('') + '</div>';
 }
-
-document.getElementById('historyFilter')?.addEventListener('input', async (e) => {
-    const query = e.target.value.toLowerCase();
-    try {
-        const response = await fetch('/api/movimientos');
-        const movements = await response.json();
-        const filtered = movements.filter(m => 
-            (m.producto_nombre && m.producto_nombre.toLowerCase().includes(query)) ||
-            (m.tipo && m.tipo.toLowerCase().includes(query)) ||
-            (m.cliente && m.cliente.toLowerCase().includes(query))
-        );
-        displayMovements(filtered, 'historyTableBody');
-    } catch (error) {
-        showToast('Error al filtrar', 'error');
-    }
-});
 
 // Utilidades
 function showToast(message, type = 'success') {
@@ -1581,17 +1569,13 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
     toast.className = `toast ${type}`;
     toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function setDefaultDate() {
     const dateInput = document.getElementById('movementDate');
     if (dateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
+        dateInput.value = new Date().toISOString().split('T')[0];
     }
 }
 
