@@ -224,7 +224,7 @@
 <div class="modal"><div class="modal-header"><h3 id="imagesModalTitle">🖼️ Imágenes del Producto</h3><button class="modal-close" onclick="closeImagesModal()">✕</button></div>
 <div class="modal-body"><input type="hidden" id="imagesProductId">
 <div class="form-group"><label class="form-label">Añadir imagen</label><input type="file" id="imageFileInput" accept="image/*" onchange="previewImageToAdd(event)" style="display:none">
-<div style="display:flex;gap:0.5rem"><button class="btn btn-outline btn-sm" onclick="document.getElementById('imageFileInput').click()">📷 Seleccionar archivo</button><button class="btn btn-primary btn-sm" onclick="uploadImage()">⬆️ Subir</button></div>
+<div style="display:flex;gap:0.5rem"><button class="btn btn-outline btn-sm" onclick="document.getElementById('imageFileInput').click()">📷 Seleccionar archivo</button><button class="btn btn-primary btn-sm" id="uploadBtn" onclick="uploadImage()">⬆️ Subir</button><span id="uploadSpinner" style="display:none;align-self:center;font-size:0.85rem;color:var(--pink)">⏳ Procesando...</span></div>
 <div id="imagePreviewSingle" style="margin-top:0.5rem"></div></div>
 <div><label class="form-label">Imágenes guardadas</label><div id="currentImages"><div class="spinner"></div></div></div></div>
 <div class="modal-footer"><button class="btn btn-outline" onclick="closeImagesModal()">Cerrar</button></div></div></div>
@@ -423,8 +423,22 @@ function previewImageToAdd(e) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
-        pendingImageData = ev.target.result;
-        document.getElementById('imagePreviewSingle').innerHTML = '<div class="image-preview-item"><img src="'+pendingImageData+'" alt="preview"><button class="remove-img" onclick="cancelImagePreview()">✕</button></div>';
+        const img = new Image();
+        img.onload = function() {
+            const maxDim = 1200;
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+                if (w > h) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+                else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            pendingImageData = canvas.toDataURL('image/jpeg', 0.85);
+            document.getElementById('imagePreviewSingle').innerHTML = '<div class="image-preview-item"><img src="'+pendingImageData+'" alt="preview"><button class="remove-img" onclick="cancelImagePreview()">✕</button></div>';
+        };
+        img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
 }
@@ -436,11 +450,17 @@ function cancelImagePreview() {
 async function uploadImage() {
     if (!pendingImageData) { showToast('Selecciona una imagen primero','error'); return; }
     const pid = document.getElementById('imagesProductId').value;
+    const btn = document.getElementById('uploadBtn');
+    const spinner = document.getElementById('uploadSpinner');
+    btn.disabled = true; btn.textContent = '⬆️ Subiendo...';
+    spinner.style.display = 'inline';
     try {
         const r = await fetch('/api/productos/'+pid+'/imagenes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url:pendingImageData,orden:0}) });
         if (r.ok) { showToast('Imagen subida ✅','success'); cancelImagePreview(); loadCurrentImages(pid); if (currentSection==='catalog') loadCatalog(); }
         else { const err = await r.json(); showToast(err.error||'Error','error'); }
     } catch(e) { showToast('Error de conexion','error'); }
+    btn.disabled = false; btn.textContent = '⬆️ Subir';
+    spinner.style.display = 'none';
 }
 async function loadCurrentImages(pid) {
     const c = document.getElementById('currentImages');

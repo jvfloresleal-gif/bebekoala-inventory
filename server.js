@@ -14,7 +14,7 @@ const pool = new Pool({
 });
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize tables
@@ -44,6 +44,10 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    // Migrations: add columns that may be missing on older tables
+    await client.query(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL`);
+    await client.query(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS talla TEXT DEFAULT ''`);
+    await client.query(`ALTER TABLE productos ADD COLUMN IF NOT EXISTS color TEXT DEFAULT ''`);
     await client.query(`
       CREATE TABLE IF NOT EXISTS productos_imagenes (
         id SERIAL PRIMARY KEY,
