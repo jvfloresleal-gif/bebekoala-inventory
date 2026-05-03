@@ -22,6 +22,15 @@ async function initDB() {
   const client = await pool.connect();
   try {
     await client.query(`
+      CREATE TABLE IF NOT EXISTS categorias (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT NOT NULL UNIQUE,
+        descripcion TEXT DEFAULT '',
+        orden INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`
       CREATE TABLE IF NOT EXISTS productos (
         id SERIAL PRIMARY KEY,
         nombre TEXT NOT NULL,
@@ -29,8 +38,28 @@ async function initDB() {
         precio_costo REAL DEFAULT 0,
         cantidad INTEGER DEFAULT 0,
         categoria TEXT DEFAULT '',
+        categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
         talla TEXT DEFAULT '',
         color TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS productos_imagenes (
+        id SERIAL PRIMARY KEY,
+        producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+        url TEXT NOT NULL,
+        orden INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS variantes (
+        id SERIAL PRIMARY KEY,
+        producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+        nombre_variante TEXT NOT NULL,
+        precio_extra REAL DEFAULT 0,
+        stock_extra INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -43,6 +72,34 @@ async function initDB() {
         fecha DATE DEFAULT CURRENT_DATE,
         notas TEXT DEFAULT '',
         cliente TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS proveedores (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        direccion TEXT DEFAULT '',
+        telefono TEXT DEFAULT '',
+        notas TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS proveedor_productos (
+        id SERIAL PRIMARY KEY,
+        proveedor_id INTEGER NOT NULL REFERENCES proveedores(id) ON DELETE CASCADE,
+        producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+        UNIQUE(proveedor_id, producto_id)
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS clientes (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        telefono TEXT DEFAULT '',
+        direccion TEXT DEFAULT '',
+        notas TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -122,11 +179,11 @@ app.get('/api/productos/:id', async (req, res) => {
 // POST /api/productos
 app.post('/api/productos', async (req, res) => {
   try {
-    const { nombre, precio_venta, precio_costo, cantidad, categoria, talla, color } = req.body;
+    const { nombre, precio_venta, precio_costo, cantidad, categoria, categoria_id, talla, color } = req.body;
     const result = await pool.query(
-      `INSERT INTO productos (nombre, precio_venta, precio_costo, cantidad, categoria, talla, color)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      [nombre, precio_venta || 0, precio_costo || 0, cantidad || 0, categoria || '', talla || '', color || '']
+      `INSERT INTO productos (nombre, precio_venta, precio_costo, cantidad, categoria, categoria_id, talla, color)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+      [nombre, precio_venta || 0, precio_costo || 0, cantidad || 0, categoria || '', categoria_id || null, talla || '', color || '']
     );
     res.status(201).json({ id: result.rows[0].id, message: 'Producto creado' });
   } catch (err) {
@@ -140,7 +197,7 @@ app.put('/api/productos/:id', async (req, res) => {
     const fields = [];
     const params = [];
     let idx = 1;
-    ['nombre', 'precio_venta', 'precio_costo', 'cantidad', 'categoria', 'talla', 'color'].forEach(f => {
+    ['nombre', 'precio_venta', 'precio_costo', 'cantidad', 'categoria', 'categoria_id', 'talla', 'color'].forEach(f => {
       if (req.body[f] !== undefined) {
         fields.push(`${f} = $${idx++}`);
         params.push(req.body[f]);
@@ -158,6 +215,9 @@ app.put('/api/productos/:id', async (req, res) => {
 // DELETE /api/productos/:id
 app.delete('/api/productos/:id', async (req, res) => {
   try {
+    await pool.query('DELETE FROM productos_imagenes WHERE producto_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM variantes WHERE producto_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM proveedor_productos WHERE producto_id = $1', [req.params.id]);
     await pool.query('DELETE FROM movimientos WHERE producto_id = $1', [req.params.id]);
     await pool.query('DELETE FROM productos WHERE id = $1', [req.params.id]);
     res.json({ message: 'Producto eliminado' });
@@ -248,13 +308,334 @@ app.post('/api/movimientos', async (req, res) => {
   }
 });
 
-// GET /api/categorias
+// ==================== CATEGORIAS (dinámicas) ====================
 app.get('/api/categorias', async (req, res) => {
   try {
+    const result = await pool.query('SELECT * FROM categorias ORDER BY orden ASC, nombre ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/categorias/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM categorias WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Categoría no encontrada' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/categorias', async (req, res) => {
+  try {
+    const { nombre, descripcion, orden } = req.body;
+    if (!nombre) return res.status(400).json({ error: 'Nombre requerido' });
     const result = await pool.query(
-      "SELECT categoria, COUNT(*) as total, COALESCE(SUM(cantidad), 0) as stock FROM productos WHERE categoria != '' GROUP BY categoria ORDER BY categoria"
+      'INSERT INTO categorias (nombre, descripcion, orden) VALUES ($1, $2, $3) RETURNING *',
+      [nombre, descripcion || '', orden || 0]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'Ya existe una categoría con ese nombre' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/categorias/:id', async (req, res) => {
+  try {
+    const fields = [];
+    const params = [];
+    let idx = 1;
+    ['nombre', 'descripcion', 'orden'].forEach(f => {
+      if (req.body[f] !== undefined) {
+        fields.push(`${f} = $${idx++}`);
+        params.push(req.body[f]);
+      }
+    });
+    if (fields.length === 0) return res.status(400).json({ error: 'Sin campos' });
+    params.push(req.params.id);
+    const result = await pool.query(
+      `UPDATE categorias SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Categoría no encontrada' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/categorias/:id', async (req, res) => {
+  try {
+    await pool.query('UPDATE productos SET categoria_id = NULL WHERE categoria_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM categorias WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Categoría eliminada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== IMÁGENES DE PRODUCTOS ====================
+app.get('/api/productos/:id/imagenes', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM productos_imagenes WHERE producto_id = $1 ORDER BY orden ASC',
+      [req.params.id]
     );
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/productos/:id/imagenes', async (req, res) => {
+  try {
+    const { url, orden } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL de imagen requerida (base64 data URL)' });
+    const result = await pool.query(
+      'INSERT INTO productos_imagenes (producto_id, url, orden) VALUES ($1, $2, $3) RETURNING *',
+      [req.params.id, url, orden || 0]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/imagenes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM productos_imagenes WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Imagen eliminada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== VARIANTES ====================
+app.get('/api/productos/:id/variantes', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM variantes WHERE producto_id = $1 ORDER BY nombre_variante ASC',
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/productos/:id/variantes', async (req, res) => {
+  try {
+    const { nombre_variante, precio_extra, stock_extra } = req.body;
+    if (!nombre_variante) return res.status(400).json({ error: 'Nombre de variante requerido' });
+    const result = await pool.query(
+      'INSERT INTO variantes (producto_id, nombre_variante, precio_extra, stock_extra) VALUES ($1, $2, $3, $4) RETURNING *',
+      [req.params.id, nombre_variante, precio_extra || 0, stock_extra || 0]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/variantes/:id', async (req, res) => {
+  try {
+    const fields = [];
+    const params = [];
+    let idx = 1;
+    ['nombre_variante', 'precio_extra', 'stock_extra'].forEach(f => {
+      if (req.body[f] !== undefined) {
+        fields.push(`${f} = $${idx++}`);
+        params.push(req.body[f]);
+      }
+    });
+    if (fields.length === 0) return res.status(400).json({ error: 'Sin campos' });
+    params.push(req.params.id);
+    const result = await pool.query(
+      `UPDATE variantes SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Variante no encontrada' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/variantes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM variantes WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Variante eliminada' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== PROVEEDORES ====================
+app.get('/api/proveedores', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM proveedores ORDER BY nombre ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/proveedores/:id', async (req, res) => {
+  try {
+    const prov = await pool.query('SELECT * FROM proveedores WHERE id = $1', [req.params.id]);
+    if (prov.rows.length === 0) return res.status(404).json({ error: 'Proveedor no encontrado' });
+    const productos = await pool.query(
+      `SELECT p.* FROM productos p
+       INNER JOIN proveedor_productos pp ON p.id = pp.producto_id
+       WHERE pp.proveedor_id = $1 ORDER BY p.nombre ASC`,
+      [req.params.id]
+    );
+    res.json({ ...prov.rows[0], productos: productos.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/proveedores', async (req, res) => {
+  try {
+    const { nombre, direccion, telefono, notas } = req.body;
+    if (!nombre) return res.status(400).json({ error: 'Nombre requerido' });
+    const result = await pool.query(
+      'INSERT INTO proveedores (nombre, direccion, telefono, notas) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nombre, direccion || '', telefono || '', notas || '']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/proveedores/:id', async (req, res) => {
+  try {
+    const fields = [];
+    const params = [];
+    let idx = 1;
+    ['nombre', 'direccion', 'telefono', 'notas'].forEach(f => {
+      if (req.body[f] !== undefined) {
+        fields.push(`${f} = $${idx++}`);
+        params.push(req.body[f]);
+      }
+    });
+    if (fields.length === 0) return res.status(400).json({ error: 'Sin campos' });
+    params.push(req.params.id);
+    const result = await pool.query(
+      `UPDATE proveedores SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Proveedor no encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/proveedores/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM proveedor_productos WHERE proveedor_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM proveedores WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Proveedor eliminado' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Proveedor-productos linking
+app.post('/api/proveedores/:id/productos', async (req, res) => {
+  try {
+    const { producto_id } = req.body;
+    if (!producto_id) return res.status(400).json({ error: 'producto_id requerido' });
+    await pool.query(
+      'INSERT INTO proveedor_productos (proveedor_id, producto_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [req.params.id, producto_id]
+    );
+    res.status(201).json({ message: 'Producto vinculado al proveedor' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/proveedores/:id/productos/:producto_id', async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM proveedor_productos WHERE proveedor_id = $1 AND producto_id = $2',
+      [req.params.id, req.params.producto_id]
+    );
+    res.json({ message: 'Producto desvinculado del proveedor' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== CLIENTES ====================
+app.get('/api/clientes', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM clientes ORDER BY nombre ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/clientes/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM clientes WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/clientes', async (req, res) => {
+  try {
+    const { nombre, telefono, direccion, notas } = req.body;
+    if (!nombre) return res.status(400).json({ error: 'Nombre requerido' });
+    const result = await pool.query(
+      'INSERT INTO clientes (nombre, telefono, direccion, notas) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nombre, telefono || '', direccion || '', notas || '']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/clientes/:id', async (req, res) => {
+  try {
+    const fields = [];
+    const params = [];
+    let idx = 1;
+    ['nombre', 'telefono', 'direccion', 'notas'].forEach(f => {
+      if (req.body[f] !== undefined) {
+        fields.push(`${f} = $${idx++}`);
+        params.push(req.body[f]);
+      }
+    });
+    if (fields.length === 0) return res.status(400).json({ error: 'Sin campos' });
+    params.push(req.params.id);
+    const result = await pool.query(
+      `UPDATE clientes SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/clientes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM clientes WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Cliente eliminado' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
